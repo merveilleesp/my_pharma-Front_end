@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:my_pharma/accueil.dart';
 //import 'package:flutter/gestures.dart';
@@ -7,6 +8,8 @@ import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Medicament {
   final String nom;
@@ -21,10 +24,49 @@ class Medicaments extends StatefulWidget {
   _MedicamentsState createState() => _MedicamentsState();
 }
 
+Future<dynamic> getMedicaments() async {
+  var url = Uri.http('localhost:8080', '/recupdonneesme.php');
+  url.toString();
+  try {
+    var response = await http.post(url, body: {});
+    print('msg: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      // Si la réponse est correcte, parsez le contenu de la réponse en JSON
+      final data = json.decode(response.body);
+      print(data);
+      return data;
+    } else {
+      // Si la réponse est incorrecte, affichez l'erreur
+      print(response.statusCode);
+      Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+      return null;
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
+    Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+    print(e);
+    return null;
+  }
+}
+
 class _MedicamentsState extends State<Medicaments> {
   bool toggleValue = false;
   bool isFavorite = false;
   List<bool> favorites = List.generate(20, (_) => false);
+  List<Medicament> medicaments = [];
+  List<Medicament> medicamentsInitials = []; // Copie de la liste initiale des pharmacies
+  dynamic stockMedicaments;
+  bool medocIsReady = false;
+
+  void loadMedoc(){
+    getMedicaments().then((value) {
+      stockMedicaments = value;
+      setState(() {
+        medocIsReady = true;
+        print(medocIsReady);
+      });
+    });
+  }
 
   toggleButton() {
     setState(() {
@@ -38,30 +80,23 @@ class _MedicamentsState extends State<Medicaments> {
     });
   }
 
+  List<Medicament> genererDonneesMedicaments() {
 
-  List<Medicament> medicaments = [];
 
-  @override
-  /*void initState() {
-    super.initState();
-    fetchMedicaments().then((meds) {
-      setState(() {
-        medicaments = meds;
-      });
-    });
-
-  Future<List<Medicament>> fetchMedicaments() async {
-    final Database db = await database; // Suppose que vous avez une méthode pour ouvrir la base de données
-
-    final List<Map<String, dynamic>> maps = await db.query('medicaments');
-
-    return List.generate(maps.length, (i) {
+    return List.generate(350, (index) {
       return Medicament(
-        nom: maps[i]['nom'],
-        // Autres attributs de votre modèle Medicament
+        nom: 'designation ${index + 1}',
       );
     });
-  }*/
+  }
+
+  @override
+  void initState() {
+    loadMedoc();
+    super.initState();
+    medicaments = genererDonneesMedicaments();
+    medicamentsInitials = List.from(medicaments);// Générer les données initiales des pharmacies
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -284,102 +319,110 @@ class _MedicamentsState extends State<Medicaments> {
                   ),
                   const SizedBox(height: 10),
                   Expanded(
-                    child: ListView.builder(
+                    child: !medocIsReady ?
+                    const Center(child: CircularProgressIndicator()) :
+                    ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       /*gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 1,
                         childAspectRatio: 4, // Ratio de largeur/hauteur des boutons
                         mainAxisSpacing: 13.0, // Espace vertical entre les boutons
                       ),*/
-                      itemCount: medicaments.length,
+                      itemCount: 15,
                       itemBuilder: (BuildContext context, int index) {
-                        Medicament medicament = medicaments[index];
-                        return Container(
-                          height: 10.0,
-                          decoration: BoxDecoration(
-                            borderRadius:
-                            BorderRadius.circular(10.0), // Rayon du bouton
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF8A8383).withOpacity(
-                                    0.5), // Couleur et opacité de l'ombre
-                                spreadRadius: 1,
-                                blurRadius: 3,
-                                offset: const Offset(0, 2), // Position de l'ombre
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              // Couleur du texte du bouton
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    10.0), // Rayon du bouton
-                              ),
-                              elevation: 8,
-                              shadowColor: Colors.white.withOpacity(0.5),
-                              minimumSize: const Size(100,
-                                  20), // Pas d'élévation supplémentaire, car l'élévation est gérée par le Container
-                            ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          medicament.nom,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.teal,
-                                          ),
-                                        ),
-                                        Text(
-                                          'boite de 10',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
+                        //Medicament medicament = medicaments[index];
+                        print(stockMedicaments[index]["designation"]);
+                        return
+                          Column(
+                            children: <Widget>[
+                              Container(
+                                height: 100.0,
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                  BorderRadius.circular(10.0), // Rayon du bouton
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF8A8383).withOpacity(
+                                          0.5), // Couleur et opacité de l'ombre
+                                      spreadRadius: 1,
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 2), // Position de l'ombre
                                     ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    // Couleur du texte du bouton
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          10.0), // Rayon du bouton
+                                    ),
+                                    elevation: 8,
+                                    shadowColor: Colors.white.withOpacity(0.5),
+                                    minimumSize: const Size(100,
+                                        20), // Pas d'élévation supplémentaire, car l'élévation est gérée par le Container
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.end,
-                                      children: [
-                                        const Text(
-                                          'Prix Fcfa',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        ListTile(
-                                          trailing: IconButton(
-                                            icon: Icon(
-                                              favorites[index] ? Icons.favorite : Icons.favorite_border, // Utilisez l'état du favori pour déterminer quelle icône afficher
-                                              color: favorites[index] ? Colors.green : null, // Mettez à jour la couleur en fonction de l'état du favori
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              stockMedicaments[index]["designation"],
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.teal,
+                                              ),
                                             ),
-                                            onPressed: () => toggleFavorite(index), // Inversez l'état du favori lorsque l'utilisateur appuie sur l'icône
-                                          ),
-                                        )
-                                      ],
-                                    ),
+                                            Text(
+                                              'boite de 10',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                          children: [
+                                            const Text(
+                                              'Prix Fcfa',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            ListTile(
+                                              trailing: IconButton(
+                                                icon: Icon(
+                                                  favorites[index] ? Icons.favorite : Icons.favorite_border, // Utilisez l'état du favori pour déterminer quelle icône afficher
+                                                  color: favorites[index] ? Colors.green : null, // Mettez à jour la couleur en fonction de l'état du favori
+                                                ),
+                                                onPressed: () => toggleFavorite(index), // Inversez l'état du favori lorsque l'utilisateur appuie sur l'icône
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                          ),
-                        );
+                              SizedBox(height: 12,)
+                            ],
+                          );
+
                       },
                     ),
                   ),

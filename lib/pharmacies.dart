@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-//import 'dart:convert';
 import 'dart:math';
-
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
@@ -25,6 +26,8 @@ class Pharmacie {
     estDeGarde = !estDeGarde;
   }
 
+
+
   // Méthode pour mettre à jour la distance
   void mettreAJourDistance() {
     // Simulation de la mise à jour de la distance avec une valeur aléatoire pour cet exemple
@@ -37,11 +40,36 @@ class Pharmacies extends StatefulWidget {
   _PharmaciesState createState() => _PharmaciesState();
 }
 
+Future<dynamic> getPharmacies() async {
+  var url = Uri.http('localhost:8080', '/recupdonnees.php');
+  url.toString();
+  try {
+    var response = await http.post(url, body: {});
+    print('msg: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      // Si la réponse est correcte, parsez le contenu de la réponse en JSON
+      final data = json.decode(response.body);
+      return data;
+    } else {
+      // Si la réponse est incorrecte, affichez l'erreur
+      print(response.statusCode);
+      Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+      return null;
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
+    Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+    print(e);
+    return null;
+  }
+}
+
+
 class _PharmaciesState extends State<Pharmacies> {
   bool toggleValue = false;
   List<Pharmacie> pharmacies = [];
   List<Pharmacie> pharmaciesInitiales = []; // Copie de la liste initiale des pharmacies
-
+  dynamic stockPharmacies;
   toggleButton() {
     setState(() {
       toggleValue = !toggleValue;
@@ -63,7 +91,10 @@ class _PharmaciesState extends State<Pharmacies> {
   }
 
   // Fonction pour générer des données de pharmacies (pour cet exemple)
+
   List<Pharmacie> genererDonneesPharmacies() {
+
+
     return List.generate(20, (index) {
       return Pharmacie(
         nom: 'Pharmacie ${index + 1}',
@@ -75,6 +106,10 @@ class _PharmaciesState extends State<Pharmacies> {
 
   @override
   void initState() {
+    getPharmacies().then((value) {
+      stockPharmacies = value;
+      print(stockPharmacies[1]["pharmacie"]);
+    });
     super.initState();
     pharmacies = genererDonneesPharmacies();
     pharmaciesInitiales = List.from(pharmacies);// Générer les données initiales des pharmacies
@@ -305,12 +340,17 @@ class _PharmaciesState extends State<Pharmacies> {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: ListView.builder(
+                    child: stockPharmacies == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       itemCount: pharmaciesAffichees.length,
                       itemBuilder: (BuildContext context, int index) {
+
+                        /*dynamic data =stockPharmacies[index];
+                        print(data["pharmacie"]);*/
                         Pharmacie pharmacie = pharmaciesAffichees[index];
-                        return Container(
+                         return Container(
                           margin: const EdgeInsets.only(bottom: 10.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.0),
@@ -346,7 +386,7 @@ class _PharmaciesState extends State<Pharmacies> {
                                     CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        pharmacie.nom,
+                                        stockPharmacies[index]["pharmacie"],
                                         style: const TextStyle(
                                           fontSize: 13,
                                           color: Colors.teal,

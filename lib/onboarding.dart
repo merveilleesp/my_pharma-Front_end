@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/connexion.dart';
-import 'package:my_pharma/inscription.dart';
-import 'package:my_pharma/pharmacies.dart';
 
 class Onboarding extends StatefulWidget {
   @override
@@ -13,6 +9,21 @@ class Onboarding extends StatefulWidget {
 class _OnboardingState extends State<Onboarding> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+
+  void _nextPage() {
+    if (_currentPage < 2) { // Suppose que vous avez 3 pages
+      _pageController.animateToPage(
+        _currentPage + 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Connexion()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,26 +38,33 @@ class _OnboardingState extends State<Onboarding> {
                   _currentPage = page;
                 });
               },
-              children: const [
+              children: [
                 OnboardingPage(
-                  title: 'Recherche de Médicaments',
-                  description: 'Trouvez facilement les médicaments dont vous avez besoin.',
-                  imagePath: 'assets/medoc.png',
+                  title: '',
+                  description: '',
+                  imagePath: 'assets/onboarding1.png',
+                  fit: BoxFit.cover,
+                  onNext: _nextPage,
                 ),
                 OnboardingPage(
-                  title: 'Localisation des Pharmacies',
-                  description: 'Localisez les pharmacies les plus proches de votre position.',
-                  imagePath: 'assets/images/image2.png',
+                  title: '',
+                  description: '',
+                  imagePath: 'assets/onboarding2.png',
+                  fit: BoxFit.cover,
+                  onNext: _nextPage,
                 ),
                 OnboardingPage(
-                  title: 'Commande et livraison Rapide',
-                  description: 'Commandez vos médicaments et faites vous livrer en quelques clics.',
-                  imagePath: 'assets/images/image3.png',
+                  title: '',
+                  description: '',
+                  imagePath: 'assets/onboarding3.png',
+                  fit: BoxFit.cover,
+                  onNext: _nextPage,
+                  isLastPage: true,
                 ),
               ],
             ),
           ),
-          Row(
+          /*Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List<Widget>.generate(3, (index) {
               return Container(
@@ -59,70 +77,103 @@ class _OnboardingState extends State<Onboarding> {
                 ),
               );
             }),
-          ),
-          const SizedBox(height: 20.0),
-          ElevatedButton(
-            onPressed: () {
-              if (_currentPage < 2) {
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Inscription()),
-                );
-              }
-            },
-            child: const Text('Commencer'),
-          ),
-          const SizedBox(height: 20.0),
+          ),*/
         ],
       ),
     );
   }
 }
 
+
 class OnboardingPage extends StatelessWidget {
   final String title;
   final String description;
   final String imagePath;
+  final BoxFit fit;
+  final VoidCallback onNext;
+  final bool isLastPage;
 
   const OnboardingPage({
     required this.title,
     required this.description,
     required this.imagePath,
+    required this.onNext,
+    this.fit = BoxFit.cover,
+    this.isLastPage = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
+        // Image de fond
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          child: Image.asset(
+            imagePath,
+            fit: fit,
           ),
         ),
-        const SizedBox(height: 20.0),
-        Image.asset(
-          imagePath,
-          height: 200.0,
-          width: 200.0,
+        // Bouton superposé à l'image
+        Positioned(
+          bottom: 20, // Ajustez la position du bouton selon vos besoins
+          right: 40,
+          child: SizedBox(
+            width: 85,
+            height: 81,
+            child: ElevatedButton(
+              onPressed: onNext,
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(20), // Ajustez le padding pour centrer le texte
+                primary: Colors.white, // Couleur de fond du bouton
+              ),
+              child: Text(
+                isLastPage ? 'Y aller' : 'Suivant',
+                style: TextStyle(
+                  fontSize: 13, // Ajustez la taille de police si nécessaire
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 20.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16.0),
+        Positioned(
+          top: 30, // Ajustez la position du bouton selon vos besoins
+          right: 40,
+          child: SizedBox(
+            width: 92,
+            height: 37,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Connexion()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                  primary: Colors.teal[200],
+                  shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                  20.0), // Rayon du bouton
+                  ),
+              ),
+              child: Text(
+                'Sauter',
+                style: TextStyle(
+                  fontSize: 15, // Ajustez la taille de police si nécessaire
+                  color: Colors.white70,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 }
+

@@ -5,6 +5,7 @@ import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/medicaments.dart';
+import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 
@@ -75,8 +76,19 @@ class Accueil extends StatelessWidget {
                         },
                       ),
                       ListTile(
-                        title: const Text('Mes Commandes'),
+                        title: const Text('Voir Panier'),
                         leading: const Icon(Icons.shopping_cart),
+                        onTap: () {
+                          // Passer le panier à la page du panier
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ParentWidget()),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: const Text('Mes Commandes'),
+                        leading: const Icon(Icons.shopping_basket),
                         onTap: () {
                           Navigator.push(
                             context,

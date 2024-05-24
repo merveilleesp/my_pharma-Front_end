@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 
 class DetailsPharmacies extends StatelessWidget {
-  final String nomPharmacie;
-  final String nomDocteur;
-  final String localisation;
-  final String assurances;
-  final String contacts;
-  final String heuresOuverture;
-  final String moyensPaiements;
+  final String nomPharmacie = "";
+  final String nomDocteur= "";
+  final String localisation= "";
+  final String assurances= "";
+  final String contacts= "";
+  final String heuresOuverture= "";
+  final String moyensPaiements= "";
+  final int id;
 
   DetailsPharmacies({
-    required this.nomPharmacie,
-    required this.nomDocteur,
-    required this.localisation,
-    required this.assurances,
-    required this.contacts,
-    required this.heuresOuverture,
-    required this.moyensPaiements,
+    required this.id,
   });
 
   @override
@@ -39,7 +34,7 @@ class DetailsPharmacies extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nomPharmacie,
+                      id.toString(),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -47,7 +42,7 @@ class DetailsPharmacies extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Dr. $nomDocteur',
+                      'Dr. $id',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

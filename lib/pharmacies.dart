@@ -7,6 +7,7 @@ import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
+import 'package:my_pharma/detailspharma.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/profil.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
 
@@ -26,8 +27,6 @@ class Pharmacie {
     estDeGarde = !estDeGarde;
   }
 
-
-
   // Méthode pour mettre à jour la distance
   void mettreAJourDistance() {
     // Simulation de la mise à jour de la distance avec une valeur aléatoire pour cet exemple
@@ -41,7 +40,7 @@ class Pharmacies extends StatefulWidget {
 }
 
 Future<dynamic> getPharmacies() async {
-  var url = Uri.http('localhost:8080', '/recupdonnees.php');
+  var url = Uri.http('localhost:8080', 'users/recupdonnees.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});
@@ -65,11 +64,15 @@ Future<dynamic> getPharmacies() async {
 }
 
 
+
 class _PharmaciesState extends State<Pharmacies> {
   bool toggleValue = false;
   List<Pharmacie> pharmacies = [];
   List<Pharmacie> pharmaciesInitiales = []; // Copie de la liste initiale des pharmacies
+  List<Pharmacie> pharmaciesAffichees = [];
   dynamic stockPharmacies;
+  dynamic dataPharmacies;
+
   toggleButton() {
     setState(() {
       toggleValue = !toggleValue;
@@ -91,10 +94,7 @@ class _PharmaciesState extends State<Pharmacies> {
   }
 
   // Fonction pour générer des données de pharmacies (pour cet exemple)
-
   List<Pharmacie> genererDonneesPharmacies() {
-
-
     return List.generate(20, (index) {
       return Pharmacie(
         nom: 'Pharmacie ${index + 1}',
@@ -104,22 +104,74 @@ class _PharmaciesState extends State<Pharmacies> {
     });
   }
 
+  // Méthode pour filtrer les pharmacies en fonction du texte de recherche
+  Future<void> filterPharmaciesFromServer(String query) async {
+    var url = Uri.http('localhost:8080', 'users/filtrepharmacies.php');
+    try {
+      var response = await http.post(url, body: {'query': query});
+      print('msg: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          pharmaciesAffichees = data.map<Pharmacie>((json) {
+            return Pharmacie(
+              nom: json["pharmacie"],
+              estDeGarde: json["estDeGarde"], // Assurez-vous que cette clé correspond à votre réponse JSON
+              distance: json["distance"],     // Assurez-vous que cette clé correspond à votre réponse JSON
+            );
+          }).toList();
+        });
+      } else {
+        print(response.statusCode);
+        Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
+      Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+      print(e);
+    }
+  }
+
+
+  void filterPharmacies(String query) {
+    query = query.toUpperCase();
+    setState(() {
+
+    if (query.isNotEmpty) {
+      stockPharmacies = dataPharmacies.where((item)
+        {
+          if(item['pharmacie'].contains(query)){
+            return true;
+          }else{
+            return false;
+          }
+        }).toList();
+    } else {
+        stockPharmacies = dataPharmacies;
+
+    }
+    });
+  }
+
+
+
   @override
   void initState() {
     getPharmacies().then((value) {
       stockPharmacies = value;
+      dataPharmacies = value;
       print(stockPharmacies[1]["pharmacie"]);
     });
     super.initState();
     pharmacies = genererDonneesPharmacies();
-    pharmaciesInitiales = List.from(pharmacies);// Générer les données initiales des pharmacies
+    pharmaciesInitiales = List.from(pharmacies); // Générer les données initiales des pharmacies
   }
 
   @override
   Widget build(BuildContext context) {
     List<Pharmacie> pharmaciesAffichees = toggleValue
         ? pharmaciesInitiales.where((pharmacie) => pharmacie.estDeGarde).toList()
-        : pharmacies;
+        : pharmacies; //.where((pharmacie) => pharmacie.nom.toLowerCase().contains(searchController.text.toLowerCase())).toList();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -175,7 +227,7 @@ class _PharmaciesState extends State<Pharmacies> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Profil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -185,17 +237,24 @@ class _PharmaciesState extends State<Pharmacies> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Assurance()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                },
+              ),
+              ListTile(
+                title: const Text('Voir Panier'),
+                leading: const Icon(Icons.shopping_cart),
+                onTap: () {
+                  // Passer le panier à la page du panier
                 },
               ),
               ListTile(
                 title: const Text('Mes Commandes'),
-                leading: const Icon(Icons.shopping_cart),
+                leading: const Icon(Icons.shopping_basket),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Commandes()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -205,7 +264,7 @@ class _PharmaciesState extends State<Pharmacies> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Favoris()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -250,7 +309,7 @@ class _PharmaciesState extends State<Pharmacies> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Connexion()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
             ],
@@ -263,9 +322,13 @@ class _PharmaciesState extends State<Pharmacies> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: TextField(
+                      onChanged: (value) {
+                        // Appeler la méthode de filtrage à chaque modification du texte de recherche
+                        filterPharmacies(value);
+                      },
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide(
@@ -274,8 +337,9 @@ class _PharmaciesState extends State<Pharmacies> {
                           ),
                         ),
                         contentPadding: EdgeInsets.only(left: 20.0),
+                        hintText: 'Rechercher une pharmacie...',
                       ),
-                      style: TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -341,16 +405,13 @@ class _PharmaciesState extends State<Pharmacies> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: stockPharmacies == null
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(child: CircularProgressIndicator(color: Colors.teal))
                         : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      itemCount: pharmaciesAffichees.length,
+                      itemCount: stockPharmacies.length,
                       itemBuilder: (BuildContext context, int index) {
-
-                        /*dynamic data =stockPharmacies[index];
-                        print(data["pharmacie"]);*/
                         Pharmacie pharmacie = pharmaciesAffichees[index];
-                         return Container(
+                        return Container(
                           margin: const EdgeInsets.only(bottom: 10.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.0),
@@ -365,15 +426,21 @@ class _PharmaciesState extends State<Pharmacies> {
                           ),
                           child: ElevatedButton(
                             onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => DetailsPharmacies(id: stockPharmacies[index]["id"]),)
+                              );
                               print('Pharmacie ${index + 1} sélectionnée');
                             },
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
+                                borderRadius:
+                                BorderRadius.circular(10.0),
                               ),
                               elevation: 3,
                               foregroundColor: Colors.white,
-                              shadowColor: Colors.white.withOpacity(0.5),
+                              shadowColor:
+                              Colors.white.withOpacity(0.5),
                               minimumSize: const Size(100, 20),
                             ),
                             child: Row(
@@ -381,7 +448,8 @@ class _PharmaciesState extends State<Pharmacies> {
                                 Expanded(
                                   flex: 2,
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
                                     crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                     children: [

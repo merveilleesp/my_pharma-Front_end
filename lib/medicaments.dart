@@ -6,6 +6,7 @@ import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
+import 'package:my_pharma/panier.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
@@ -13,9 +14,21 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class Medicament {
   final String nom;
+  final double prix;
 
   Medicament({
     required this.nom,
+    required this.prix,
+  });
+}
+
+class CartItem {
+  final Medicament medicament;
+  int quantity;
+
+  CartItem({
+    required this.medicament,
+    this.quantity = 1,
   });
 }
 
@@ -25,7 +38,7 @@ class Medicaments extends StatefulWidget {
 }
 
 Future<dynamic> getMedicaments() async {
-  var url = Uri.http('localhost:8080', '/recupdonneesme.php');
+  var url = Uri.http('localhost:8080', 'users/recupdonneesme.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});
@@ -49,6 +62,7 @@ Future<dynamic> getMedicaments() async {
   }
 }
 
+
 class _MedicamentsState extends State<Medicaments> {
   bool toggleValue = false;
   bool isFavorite = false;
@@ -56,11 +70,14 @@ class _MedicamentsState extends State<Medicaments> {
   List<Medicament> medicaments = [];
   List<Medicament> medicamentsInitials = []; // Copie de la liste initiale des pharmacies
   dynamic stockMedicaments;
+  dynamic dataMedicaments;
   bool medocIsReady = false;
+  List<CartItem> cart = []; // Ajout du panier
 
-  void loadMedoc(){
+  void loadMedoc() {
     getMedicaments().then((value) {
       stockMedicaments = value;
+      dataMedicaments = value;
       setState(() {
         medocIsReady = true;
         print(medocIsReady);
@@ -76,16 +93,55 @@ class _MedicamentsState extends State<Medicaments> {
 
   void toggleFavorite(int index) {
     setState(() {
-      favorites[index] = !favorites[index]; // Inversez l'état du favori pour l'icône spécifique à l'index donné
+      favorites[index] = !favorites[index];
     });
   }
 
+  void addToCart(Medicament medicament) {
+    setState(() {
+      CartItem? existingItem = cart.firstWhere(
+              (item) => item.medicament.nom == medicament.nom,
+          orElse: () => CartItem(medicament: medicament, quantity: 0)); // Retourner un élément fictif avec la quantité 0
+      if (existingItem.quantity == 0) {
+        cart.add(CartItem(medicament: medicament));
+      } else {
+        existingItem.quantity++;
+      }
+      Fluttertoast.showToast(
+          msg: "${medicament.nom} ajouté au panier",
+          toastLength: Toast.LENGTH_SHORT);
+    });
+  }
+
+  void filterMedicaments(String query) {
+    print(query);
+    query = query.toUpperCase();
+    setState(() {
+
+      if (query.isNotEmpty) {
+        stockMedicaments = dataMedicaments.where((item)
+        {
+          if(item['designation'].contains(query)){
+            return true;
+          }else{
+            return false;
+          }
+        }).toList();
+      } else {
+        stockMedicaments= dataMedicaments;
+
+      }
+    });
+  }
+
+
   List<Medicament> genererDonneesMedicaments() {
-
-
     return List.generate(350, (index) {
+      // Générez un prix aléatoire pour chaque médicament
+      final double prix = (index + 1) * 2.5; // Par exemple, un prix simple
       return Medicament(
         nom: 'designation ${index + 1}',
+        prix: prix,
       );
     });
   }
@@ -95,7 +151,7 @@ class _MedicamentsState extends State<Medicaments> {
     loadMedoc();
     super.initState();
     medicaments = genererDonneesMedicaments();
-    medicamentsInitials = List.from(medicaments);// Générer les données initiales des pharmacies
+    medicamentsInitials = List.from(medicaments);
   }
 
   @override
@@ -107,12 +163,12 @@ class _MedicamentsState extends State<Medicaments> {
           title: const Text(
             'MEDICAMENTS',
             style: TextStyle(
-              color: Colors.white, // Texte en blanc
+              color: Colors.white,
             ),
           ),
-          backgroundColor: const Color(0xFF009688), // Arrière-plan vert
+          backgroundColor: const Color(0xFF009688),
           iconTheme: const IconThemeData(
-            color: Colors.white, // Icône en blanc
+            color: Colors.white,
           ),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -143,7 +199,8 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Accueil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  );
+                  // Action à effectuer lorsque l'option Accueil est sélectionnée
                 },
               ),
               ListTile(
@@ -153,7 +210,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Profil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -163,18 +220,24 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Assurance()),
-                  );
-                  // Action à effectuer lorsque l'option Assurances est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                },
+              ),
+              ListTile(
+                title: const Text('Voir Panier'),
+                leading: const Icon(Icons.shopping_cart),
+                onTap: () {
+                  // Passer le panier à la page du panier
                 },
               ),
               ListTile(
                 title: const Text('Mes Commandes'),
-                leading: const Icon(Icons.shopping_cart),
+                leading: const Icon(Icons.shopping_basket),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Commandes()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -184,7 +247,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Favoris()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -229,7 +292,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Connexion()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
             ],
@@ -242,9 +305,13 @@ class _MedicamentsState extends State<Medicaments> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(16.0),
                     child: TextField(
+                      onChanged: (value) {
+                        // Appeler la méthode de filtrage à chaque modification du texte de recherche
+                        filterMedicaments(value);
+                      },
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide(
@@ -319,110 +386,127 @@ class _MedicamentsState extends State<Medicaments> {
                   ),
                   const SizedBox(height: 10),
                   Expanded(
-                    child: !medocIsReady ?
-                    const Center(child: CircularProgressIndicator()) :
-                    ListView.builder(
+                    child: !medocIsReady
+                        ? const Center(child: CircularProgressIndicator(color: Colors.teal,))
+                        : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      /*gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        childAspectRatio: 4, // Ratio de largeur/hauteur des boutons
-                        mainAxisSpacing: 13.0, // Espace vertical entre les boutons
-                      ),*/
-                      itemCount: 15,
+                      itemCount: stockMedicaments.length,
                       itemBuilder: (BuildContext context, int index) {
-                        //Medicament medicament = medicaments[index];
-                        print(stockMedicaments[index]["designation"]);
-                        return
-                          Column(
-                            children: <Widget>[
-                              Container(
-                                height: 100.0,
-                                decoration: BoxDecoration(
-                                  borderRadius:
-                                  BorderRadius.circular(10.0), // Rayon du bouton
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF8A8383).withOpacity(
-                                          0.5), // Couleur et opacité de l'ombre
-                                      spreadRadius: 1,
-                                      blurRadius: 3,
-                                      offset: const Offset(0, 2), // Position de l'ombre
+                        return Column(
+                          children: <Widget>[
+                            Container(
+                              height: 100.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF8A8383)
+                                        .withOpacity(0.5),
+                                    spreadRadius: 1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(10.0),
+                                  ),
+                                  elevation: 8,
+                                  shadowColor:
+                                  Colors.white.withOpacity(0.5),
+                                  minimumSize: const Size(100, 20),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Colors.teal,
+                                      child: Text(
+                                        stockMedicaments[index]["designation"][0], // Premier caractère de "designation"
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 25),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            stockMedicaments[index]
+                                            ["designation"],
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.teal,
+                                            ),
+                                          ),
+                                          Text(
+                                            'boite de 10',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Prix Fcfa',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(
+                                              favorites[index]
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: favorites[index]
+                                                  ? Colors.teal
+                                                  : Colors.teal,
+                                            ),
+                                            onPressed: () =>
+                                                toggleFavorite(index),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.add_shopping_cart, color: Colors.teal,),
+                                            onPressed: () {
+                                              // Ajoutez un prix par défaut pour le médicament
+                                              final double defaultPrice = 0.0; // Par exemple, un prix de 0
+                                              Medicament medicament = Medicament(
+                                                nom: stockMedicaments[index]["designation"],
+                                                prix: defaultPrice, // Utilisez le prix par défaut
+                                              );
+                                              addToCart(medicament);
+                                            },
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                                child: ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    // Couleur du texte du bouton
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          10.0), // Rayon du bouton
-                                    ),
-                                    elevation: 8,
-                                    shadowColor: Colors.white.withOpacity(0.5),
-                                    minimumSize: const Size(100,
-                                        20), // Pas d'élévation supplémentaire, car l'élévation est gérée par le Container
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              stockMedicaments[index]["designation"],
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.teal,
-                                              ),
-                                            ),
-                                            Text(
-                                              'boite de 10',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                          children: [
-                                            const Text(
-                                              'Prix Fcfa',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                            SizedBox(width: 10),
-                                            ListTile(
-                                              trailing: IconButton(
-                                                icon: Icon(
-                                                  favorites[index] ? Icons.favorite : Icons.favorite_border, // Utilisez l'état du favori pour déterminer quelle icône afficher
-                                                  color: favorites[index] ? Colors.green : null, // Mettez à jour la couleur en fonction de l'état du favori
-                                                ),
-                                                onPressed: () => toggleFavorite(index), // Inversez l'état du favori lorsque l'utilisateur appuie sur l'icône
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ),
-                              SizedBox(height: 12,)
-                            ],
-                          );
-
+                            ),
+                            SizedBox(
+                              height: 12,
+                            )
+                          ],
+                        );
                       },
                     ),
                   ),

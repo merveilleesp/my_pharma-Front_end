@@ -3,6 +3,7 @@ import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
+import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/profil.dart';
 
 class Favori {
@@ -100,7 +101,7 @@ class _FavorisState extends State<Favoris> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Commandes()),
+                  MaterialPageRoute(builder: (context) => ListeCommandesPage()),
                 );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
               },
             ),

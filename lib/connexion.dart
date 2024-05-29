@@ -130,7 +130,7 @@ class _ConnexionState extends State<Connexion> {
                                       builder: (BuildContext context) {
                                         return AlertDialog(
                                             title: const Text("Info"),
-                                            content: Text(message),
+                                            content: Text('Informations correctes'),
                                             actions: <Widget>[
                                               TextButton(
                                                 onPressed: () {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/connexion.dart';
@@ -190,3 +190,4 @@ class ProduitsCommandesPage extends StatelessWidget {
     );
   }
 }
+*/

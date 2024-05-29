@@ -9,6 +9,7 @@ import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/detailspharma.dart';
 import 'package:my_pharma/favoris.dart';
+import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/profil.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
 
 class Pharmacie {
@@ -253,7 +254,7 @@ class _PharmaciesState extends State<Pharmacies> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Commandes()),
+                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
                   ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),

@@ -1,36 +1,40 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_pharma/accueil.dart';
-//import 'package:flutter/gestures.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
-import 'package:my_pharma/panier.dart';
+import 'package:my_pharma/listecom.dart';
+import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/profil.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
+import 'panier.dart';
 
 class Medicament {
   final String nom;
   final double prix;
+  bool isFavorite;
 
   Medicament({
     required this.nom,
     required this.prix,
+    this.isFavorite = false,
   });
 }
 
-class CartItem {
+class MedicamentCartItem {
   final Medicament medicament;
   int quantity;
 
-  CartItem({
+  MedicamentCartItem({
     required this.medicament,
     this.quantity = 1,
   });
 }
+
+
 
 class Medicaments extends StatefulWidget {
   @override
@@ -62,7 +66,6 @@ Future<dynamic> getMedicaments() async {
   }
 }
 
-
 class _MedicamentsState extends State<Medicaments> {
   bool toggleValue = false;
   bool isFavorite = false;
@@ -72,7 +75,7 @@ class _MedicamentsState extends State<Medicaments> {
   dynamic stockMedicaments;
   dynamic dataMedicaments;
   bool medocIsReady = false;
-  List<CartItem> cart = []; // Ajout du panier
+  List<MedicamentCartItem> panier = []; // Ajout du panier
 
   void loadMedoc() {
     getMedicaments().then((value) {
@@ -97,43 +100,56 @@ class _MedicamentsState extends State<Medicaments> {
     });
   }
 
-  void addToCart(Medicament medicament) {
-    setState(() {
-      CartItem? existingItem = cart.firstWhere(
-              (item) => item.medicament.nom == medicament.nom,
-          orElse: () => CartItem(medicament: medicament, quantity: 0)); // Retourner un élément fictif avec la quantité 0
-      if (existingItem.quantity == 0) {
-        cart.add(CartItem(medicament: medicament));
-      } else {
-        existingItem.quantity++;
-      }
-      Fluttertoast.showToast(
-          msg: "${medicament.nom} ajouté au panier",
-          toastLength: Toast.LENGTH_SHORT);
-    });
+  void addToCart(BuildContext context, Medicament medicament) {
+    final existingCartItem = panier.firstWhere(
+          (item) => item.medicament.nom == medicament.nom,
+      orElse: () => MedicamentCartItem(medicament: Medicament(nom: '', prix: 0)),
+    );
+
+    if (existingCartItem.medicament.nom.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${medicament.nom} est déjà dans le panier.'),
+        ),
+      );
+    } else {
+      setState(() {
+        panier.add(MedicamentCartItem(medicament: medicament));
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${medicament.nom} a été ajouté au panier.'),
+        ),
+      );
+    }
+  }
+
+  void navigateToPanier(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PanierPage(panier: panier),
+      ),
+    );
   }
 
   void filterMedicaments(String query) {
     print(query);
     query = query.toUpperCase();
     setState(() {
-
       if (query.isNotEmpty) {
-        stockMedicaments = dataMedicaments.where((item)
-        {
-          if(item['designation'].contains(query)){
+        stockMedicaments = dataMedicaments.where((item) {
+          if (item['designation'].contains(query)) {
             return true;
-          }else{
+          } else {
             return false;
           }
         }).toList();
       } else {
-        stockMedicaments= dataMedicaments;
-
+        stockMedicaments = dataMedicaments;
       }
     });
   }
-
 
   List<Medicament> genererDonneesMedicaments() {
     return List.generate(350, (index) {
@@ -210,7 +226,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Profil()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -220,24 +236,28 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Assurance()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
-              ListTile(
-                title: const Text('Voir Panier'),
-                leading: const Icon(Icons.shopping_cart),
-                onTap: () {
-                  // Passer le panier à la page du panier
-                },
-              ),
+              /*ListTile(
+                        title: const Text('Voir Panier'),
+                        leading: const Icon(Icons.shopping_cart),
+                        onTap: () {
+                          // Passer le panier à la page du panier
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PanierPage(panier: panier)),
+                          );
+                        },
+                      ),*/
               ListTile(
                 title: const Text('Mes Commandes'),
                 leading: const Icon(Icons.shopping_basket),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Commandes()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -247,7 +267,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Favoris()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(
@@ -292,7 +312,7 @@ class _MedicamentsState extends State<Medicaments> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Connexion()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
             ],
@@ -320,200 +340,103 @@ class _MedicamentsState extends State<Medicaments> {
                           ),
                         ),
                         contentPadding: EdgeInsets.only(left: 20.0),
+                        hintText: 'Recherche...',
                       ),
-                      style: TextStyle(fontSize: 12),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'TOUS LES MEDICAMENTS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF009688),
-                        ),
+                  Expanded(
+                    child: stockMedicaments != null
+                        ? GridView.builder(
+                      itemCount: stockMedicaments.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10.0,
+                        mainAxisSpacing: 10.0,
                       ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 1000),
-                        height: 40,
-                        width: 90,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: toggleValue
-                              ? Colors.greenAccent[100]
-                              : Colors.grey.withOpacity(0.5),
-                        ),
-                        child: Stack(
-                          children: <Widget>[
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 1000),
-                              curve: Curves.easeIn,
-                              top: 2,
-                              left: toggleValue ? 50.0 : 0.0,
-                              right: toggleValue ? 0.0 : 50.0,
-                              child: InkWell(
-                                onTap: toggleButton,
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 1000),
-                                  transitionBuilder: (Widget child,
-                                      Animation<double> animation) {
-                                    return ScaleTransition(
-                                      child: child,
-                                      scale: animation,
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 35,
-                                    height: 35,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                      border: toggleValue
-                                          ? null
-                                          : Border.all(color: Colors.white),
-                                    ),
-                                  ),
+                      itemBuilder: (BuildContext context, int index) {
+                        final medicament = stockMedicaments[index];
+                        return Container(
+                          margin: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                '${medicament['designation']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                '${medicament['prix']} Fcfa',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: !medocIsReady
-                        ? const Center(child: CircularProgressIndicator(color: Colors.teal,))
-                        : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      itemCount: stockMedicaments.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Column(
-                          children: <Widget>[
-                            Container(
-                              height: 100.0,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF8A8383)
-                                        .withOpacity(0.5),
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 2),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(
+                                      favorites[index]
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: favorites[index]
+                                          ? Colors.red
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      toggleFavorite(index);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.shopping_cart),
+                                    onPressed: () {
+                                      addToCart(
+                                        context,
+                                        Medicament(
+                                          nom: medicament['designation'],
+                                          prix: double.parse(medicament['prix'].toString()),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(10.0),
-                                  ),
-                                  elevation: 8,
-                                  shadowColor:
-                                  Colors.white.withOpacity(0.5),
-                                  minimumSize: const Size(100, 20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.teal,
-                                      child: Text(
-                                        stockMedicaments[index]["designation"][0], // Premier caractère de "designation"
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 25),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            stockMedicaments[index]
-                                            ["designation"],
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.teal,
-                                            ),
-                                          ),
-                                          Text(
-                                            'boite de 10',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Prix Fcfa',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.end,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(
-                                              favorites[index]
-                                                  ? Icons.favorite
-                                                  : Icons.favorite_border,
-                                              color: favorites[index]
-                                                  ? Colors.teal
-                                                  : Colors.teal,
-                                            ),
-                                            onPressed: () =>
-                                                toggleFavorite(index),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.add_shopping_cart, color: Colors.teal,),
-                                            onPressed: () {
-                                              // Ajoutez un prix par défaut pour le médicament
-                                              final double defaultPrice = 0.0; // Par exemple, un prix de 0
-                                              Medicament medicament = Medicament(
-                                                nom: stockMedicaments[index]["designation"],
-                                                prix: defaultPrice, // Utilisez le prix par défaut
-                                              );
-                                              addToCart(medicament);
-                                            },
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 12,
-                            )
-                          ],
+                            ],
+                          ),
                         );
                       },
+                    )
+                        : Center(
+                      child: CircularProgressIndicator(),
                     ),
                   ),
                 ],
               ),
             );
           },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            navigateToPanier(context);
+          },
+          child: Icon(Icons.shopping_cart),
         ),
       ),
     );

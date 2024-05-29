@@ -5,6 +5,7 @@ import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_pharma/listecom.dart';
 
 class Profil extends StatelessWidget {
   @override
@@ -82,7 +83,7 @@ class Profil extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Commandes()),
+                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),

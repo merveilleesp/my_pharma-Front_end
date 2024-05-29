@@ -1,15 +1,67 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 //import 'package:flutter/gestures.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/commandes.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
+import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
+import 'package:my_pharma/panier.dart';
 import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 
-class Accueil extends StatelessWidget {
+class Accueil extends StatefulWidget {
+  @override
+  _AccueilState createState() => _AccueilState();
+}
+
+Future<dynamic> getClasse() async {
+  var url = Uri.http('localhost:8080', 'users/classethera.php');
+  url.toString();
+  try {
+    var response = await http.post(url, body: {});
+    print('msg: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      // Si la réponse est correcte, parsez le contenu de la réponse en JSON
+      final data = json.decode(response.body);
+      print(data);
+      return data;
+    } else {
+      // Si la réponse est incorrecte, affichez l'erreur
+      print(response.statusCode);
+      Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+      return null;
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
+    Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+    print(e);
+    return null;
+  }
+}
+
+class _AccueilState extends State<Accueil> {
+
+  dynamic stockclasse;
+  bool isOK = false;
+  
+  @override
+  void initState() {
+    getClasse().then((value) {
+      stockclasse = value;
+      print(stockclasse[1][0]);
+      setState(() {
+        isOK = true;
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
         return MaterialApp(
@@ -75,24 +127,24 @@ class Accueil extends StatelessWidget {
                           );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                         },
                       ),
-                      ListTile(
+                      /*ListTile(
                         title: const Text('Voir Panier'),
                         leading: const Icon(Icons.shopping_cart),
                         onTap: () {
                           // Passer le panier à la page du panier
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ParentWidget()),
+                            MaterialPageRoute(builder: (context) => PanierPage(panier: panier)),
                           );
                         },
-                      ),
+                      ),*/
                       ListTile(
                         title: const Text('Mes Commandes'),
                         leading: const Icon(Icons.shopping_basket),
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Commandes()),
+                            MaterialPageRoute(builder: (context) => ListeCommandesPage()),
                           );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                         },
                       ),
@@ -214,7 +266,9 @@ class Accueil extends StatelessWidget {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           // padding: EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Row(
+                          child: !isOK
+                              ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+                              : Row(
                             children: List.generate(
                                 8,
                                 (index) => Column(
@@ -237,8 +291,8 @@ class Accueil extends StatelessWidget {
                                             ),
                                           ),
                                         ),
-                                        const Text(
-                                          "Traitement",
+                                        Text(
+                                          '${stockclasse[index][0]}',
                                           style: TextStyle(
                                               color: Color(0xFF009688), fontSize: 12),
                                         )
@@ -515,239 +569,6 @@ class Accueil extends StatelessWidget {
                                   ),
                                 ])),
                         // Fin de la partie Les Marques
-                        const SizedBox(height: 25),
-                        //titre de la partie Les pharmacies
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Padding(
-                                padding: EdgeInsets.only(left: 20.0),
-                                child: Text(
-                                  'Les pharmacies',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF009688)),
-                                )),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 20.0),
-                              child: TextButton(
-                                onPressed: () {
-                                  // Action lorsque le bouton "Voir Plus" est pressé
-                                },
-                                child: const Text(
-                                  'Voir Plus',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF009688),
-                                  ),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                        //fin du code titre de la partie Les pharmacies
-                        const SizedBox(height: 15),
-                        //Début de la partie Les pharmacies
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 64, 63, 63)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 64, 63, 63)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 64, 63, 63)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 64, 63, 63)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 64, 63, 63)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.0),
-                                        ),
-                                        elevation: 8,
-                                        shadowColor: const Color.fromARGB(255, 93, 89, 89)
-                                            .withOpacity(1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              'assets/Logopharma2.png',
-                                              width: 800,
-                                            ),
-                                            const Text("S'inscrire",
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                )),
-                                          ],
-                                        ),
-                                      )),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                        //Fin de la partie Les pharmacies
-                        const SizedBox(height: 25),
                       ],
                     ),
                   );

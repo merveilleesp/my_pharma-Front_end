@@ -1,43 +1,10 @@
 import 'package:flutter/material.dart';
+import 'Models/Commande.dart';
+import 'Models/MedicamentCartItem.dart';
 import 'medicaments.dart';
 
 import 'medicaments.dart';
 
-class Commande {
-  final int numero;
-  final DateTime date;
-  final bool avecLivraison;
-  final List<MedicamentCartItem> items;
-  final double montant;
-
-  Commande({
-    required this.numero,
-    required this.date,
-    required this.avecLivraison,
-    required this.items,
-    required this.montant,
-  });
-
-}
-
-class CommandeManager {
-  // Singleton
-  static final CommandeManager _instance = CommandeManager._internal();
-
-  factory CommandeManager() {
-    return _instance;
-  }
-
-  CommandeManager._internal();
-
-  // Liste des commandes
-  List<Commande> commandes = [];
-
-  // Ajouter une commande
-  void ajouterCommande(Commande commande) {
-    commandes.add(commande);
-  }
-}
 
 
 
@@ -56,7 +23,6 @@ class CommandePage extends StatelessWidget {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context); // Retour à la page précédente (Panier)
-            Navigator.pop(context); // Retour à la page des médicaments
           },
         ),
       ),
@@ -88,6 +54,7 @@ class CommandePage extends StatelessWidget {
               'Articles commandés:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            Text(commande.pharmacie),
             SizedBox(height: 8),
             Expanded(
               child: ListView.builder(

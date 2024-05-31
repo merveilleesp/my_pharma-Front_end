@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/verification.dart';
 import 'package:http/http.dart' as http;
+import 'package:twilio/twilio.dart';
 
 
 class Inscription extends StatefulWidget {
@@ -36,6 +37,7 @@ class _InscriptionState extends State<Inscription> {
     _ismotDePasseVisible = false;
     message = "";
   }
+
 
   Future<void> sInscrire() async {
     Uri url = Uri.parse('http://localhost:5050/mypharma.php');

@@ -14,6 +14,7 @@ import 'package:my_pharma/panier.dart';
 import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
+import 'package:my_pharma/search.dart';
 
 class Accueil extends StatefulWidget {
   @override
@@ -60,6 +61,20 @@ class _AccueilState extends State<Accueil> {
       });
     });
     super.initState();
+  }
+  final TextEditingController _controller = TextEditingController();
+
+  void _onSearchIconTap() {
+    if (_controller.text.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SearchPage(nom_medoc: _controller.text,)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Le champ de recherche est vide')),
+      );
+    }
   }
 
   @override
@@ -216,14 +231,19 @@ class _AccueilState extends State<Accueil> {
                       children: <Widget>[
                         const SizedBox(height: 10),
                         //input/border de recherche
-                        const Padding(
+                         Padding(
                           padding: EdgeInsets.all(16.0),
                           child: TextField(
+                            controller: _controller,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.black, width: 1.0)),
                               contentPadding: EdgeInsets.only(left: 20.0),
+                              suffixIcon: GestureDetector(
+                                onTap: _onSearchIconTap,
+                                child: Icon(Icons.search),
+                              ),
                             ),
                             style: TextStyle(fontSize: 12),
                           ),
@@ -578,3 +598,5 @@ class _AccueilState extends State<Accueil> {
     );
   }
 }
+
+

@@ -10,29 +10,12 @@ import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/profil.dart';
+import 'Models/Medicament.dart';
+import 'Models/MedicamentCartItem.dart';
 import 'panier.dart';
 
-class Medicament {
-  final String nom;
-  final double prix;
-  bool isFavorite;
 
-  Medicament({
-    required this.nom,
-    required this.prix,
-    this.isFavorite = false,
-  });
-}
 
-class MedicamentCartItem {
-  final Medicament medicament;
-  int quantity;
-
-  MedicamentCartItem({
-    required this.medicament,
-    this.quantity = 1,
-  });
-}
 
 
 
@@ -100,38 +83,8 @@ class _MedicamentsState extends State<Medicaments> {
     });
   }
 
-  void addToCart(BuildContext context, Medicament medicament) {
-    final existingCartItem = panier.firstWhere(
-          (item) => item.medicament.nom == medicament.nom,
-      orElse: () => MedicamentCartItem(medicament: Medicament(nom: '', prix: 0)),
-    );
 
-    if (existingCartItem.medicament.nom.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${medicament.nom} est déjà dans le panier.'),
-        ),
-      );
-    } else {
-      setState(() {
-        panier.add(MedicamentCartItem(medicament: medicament));
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${medicament.nom} a été ajouté au panier.'),
-        ),
-      );
-    }
-  }
 
-  void navigateToPanier(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PanierPage(panier: panier),
-      ),
-    );
-  }
 
   void filterMedicaments(String query) {
     print(query);
@@ -404,18 +357,7 @@ class _MedicamentsState extends State<Medicaments> {
                                       toggleFavorite(index);
                                     },
                                   ),
-                                  IconButton(
-                                    icon: Icon(Icons.shopping_cart),
-                                    onPressed: () {
-                                      addToCart(
-                                        context,
-                                        Medicament(
-                                          nom: medicament['designation'],
-                                          prix: double.parse(medicament['prix'].toString()),
-                                        ),
-                                      );
-                                    },
-                                  ),
+
                                 ],
                               ),
                             ],
@@ -431,12 +373,6 @@ class _MedicamentsState extends State<Medicaments> {
               ),
             );
           },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            navigateToPanier(context);
-          },
-          child: Icon(Icons.shopping_cart),
         ),
       ),
     );

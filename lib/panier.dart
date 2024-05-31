@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:my_pharma/Models/PharmacieCard.dart';
+import 'Models/Commande.dart';
+import 'Models/CommandeManager.dart';
+import 'Models/MedicamentCartItem.dart';
 import 'medicaments.dart';
 import 'commande.dart';
 
-
 class PanierPage extends StatefulWidget {
-  final List<MedicamentCartItem> panier;
+  final List<PharmacieCard> panier;
 
   PanierPage({required this.panier});
 
@@ -13,16 +17,16 @@ class PanierPage extends StatefulWidget {
 }
 
 class _PanierPageState extends State<PanierPage> {
-  void increaseQuantity(int index) {
+  void increaseQuantity(int index, List<MedicamentCartItem> medocs) {
     setState(() {
-      widget.panier[index].quantity++;
+      medocs[index].quantity++;
     });
   }
 
-  void decreaseQuantity(int index) {
+  void decreaseQuantity(int index, int indexPharmacie) {
     setState(() {
-      if (widget.panier[index].quantity > 1) {
-        widget.panier[index].quantity--;
+      if (widget.panier[indexPharmacie].medicaments[index].quantity > 1) {
+        widget.panier[indexPharmacie].medicaments[index].quantity--;
       }
     });
   }
@@ -33,21 +37,27 @@ class _PanierPageState extends State<PanierPage> {
     });
   }
 
-  void toggleFavorite(int index) {
-    setState(() {
-      widget.panier[index].medicament.isFavorite = !widget.panier[index].medicament.isFavorite;
-    });
-  }
-
-  double getTotalPrice() {
-    double total = 0.0;
-    for (var item in widget.panier) {
-      total += item.medicament.prix * item.quantity;
+  Future<void> createOrderWithDelivery() async {
+    var url = Uri.parse('http://localhost:8080/users/commande.php');
+    var response = await http.post(url);
+    if (response.statusCode == 200) {
+      print('Commande avec livraison créée avec succès');
+    } else {
+      print('Erreur lors de la création de la commande avec livraison');
     }
-    return total;
   }
 
-  void showValidationOptions(BuildContext context) {
+  Future<void> createOrderWithoutDelivery() async {
+    var url = Uri.parse('http://localhost:8080/users/commande.php');
+    var response = await http.post(url);
+    if (response.statusCode == 200) {
+      print('Commande sans livraison créée avec succès');
+    } else {
+      print('Erreur lors de la création de la commande sans livraison');
+    }
+  }
+
+  void showValidationOptions(BuildContext context, List<MedicamentCartItem> medocs, int indexPharmacieCard, double montant) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -63,14 +73,16 @@ class _PanierPageState extends State<PanierPage> {
                 title: Text('Avec livraison'),
                 onTap: () {
                   Navigator.pop(context);
-                  createOrder(context, true);
+                  createOrder(context, true, indexPharmacieCard, medocs, montant);
+                  createOrderWithDelivery();
                 },
               ),
               ListTile(
                 title: Text('Sans livraison'),
                 onTap: () {
                   Navigator.pop(context);
-                  createOrder(context, false);
+                  createOrder(context, false,indexPharmacieCard, medocs, montant);
+                  createOrderWithoutDelivery();
                 },
               ),
             ],
@@ -80,19 +92,20 @@ class _PanierPageState extends State<PanierPage> {
     );
   }
 
-  void createOrder(BuildContext context, bool avecLivraison) {
+  void createOrder(BuildContext context, bool avecLivraison,int indexPharmacieCard, List<MedicamentCartItem> medocs, double total) {
     final int numero = DateTime.now().millisecondsSinceEpoch.toInt();
     final DateTime date = DateTime.now();
-    final double montant = getTotalPrice();
+    final double montant = total;
 
-    final List<MedicamentCartItem> panierItems = widget.panier.toList();
+    final List<PharmacieCard> panierItems = widget.panier.toList();
 
     final Commande commande = Commande(
       numero: numero,
       date: date,
       montant: montant,
       avecLivraison: avecLivraison,
-      items: panierItems,
+      items: medocs,
+      pharmacie: widget.panier[indexPharmacieCard].pharmacieName,
     );
 
     // Ajouter la commande à la liste via le singleton
@@ -100,17 +113,16 @@ class _PanierPageState extends State<PanierPage> {
 
     // Réinitialiser le panier
     setState(() {
-      widget.panier.clear();
+      widget.panier.remove(widget.panier[indexPharmacieCard]);
     });
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CommandePage(commande: commande, items: panierItems),
+        builder: (context) => CommandePage(commande: commande, items: medocs,),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -136,96 +148,112 @@ class _PanierPageState extends State<PanierPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                item.medicament.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                color: item.medicament.isFavorite ? Colors.red : Colors.grey,
-                              ),
-                              onPressed: () {
-                                toggleFavorite(index);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                removeFromCart(index);
-                              },
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            item.medicament.nom,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            'Prix: ${item.medicament.prix} Fcfa',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.remove),
-                              onPressed: () {
-                                decreaseQuantity(index);
-                              },
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black54),
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Text(
-                                '${item.quantity}',
-                                style: TextStyle(
-                                  fontSize: 16,
+                        Text(item.pharmacieName),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: item.medicaments.length,
+                          itemBuilder: (context, indexMedoc) {
+                            final medoc = item.medicaments[indexMedoc];
+                            return Card(
+                              margin: EdgeInsets.all(8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            medoc.medicament.nom,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              medoc.medicament.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                              color: medoc.medicament.isFavorite ? Colors.red : Colors.grey,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                medoc.medicament.isFavorite = !medoc.medicament.isFavorite;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: Text(
+                                        'Prix: ${medoc.medicament.prix} Fcfa',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.remove),
+                                          onPressed: () {
+                                            decreaseQuantity(indexMedoc, index);
+                                          },
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.black54),
+                                            borderRadius: BorderRadius.circular(4.0),
+                                          ),
+                                          child: Text(
+                                            '${medoc.quantity}',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.add),
+                                          onPressed: () {
+                                            increaseQuantity(indexMedoc, item.medicaments);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () {
-                                increaseQuantity(index);
-                              },
-                            ),
-                          ],
+                            );
+                          },
+                        ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: widget.panier.isEmpty
+                              ? null
+                              : () {
+                            showValidationOptions(context, item.medicaments,index , item.prixTotal());
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            primary: Colors.teal,
+                          ),
+                          child: Text(
+                            'Valider ${item.prixTotal().toStringAsFixed(2)} Fcfa',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 );
               },
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                showValidationOptions(context);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                primary: Colors.teal,
-              ),
-              child: Text(
-                'Valider ${getTotalPrice().toStringAsFixed(2)} Fcfa',
-                style: TextStyle(fontSize: 16),
-              ),
             ),
           ),
         ],

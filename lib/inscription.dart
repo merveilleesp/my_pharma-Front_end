@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:my_pharma/code.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/verification.dart';
 import 'package:http/http.dart' as http;
@@ -38,6 +41,15 @@ class _InscriptionState extends State<Inscription> {
     message = "";
   }
 
+  String genererCode() {
+    final random = Random();
+    final code = sha1
+        .convert(utf8.encode(
+        DateTime.now().toString() + random.nextInt(1000000).toString()))
+        .toString()
+        .substring(0, 4);
+    return code;
+  }
 
   Future<void> sInscrire() async {
     Uri url = Uri.parse('http://localhost:5050/mypharma.php');
@@ -219,25 +231,14 @@ class _InscriptionState extends State<Inscription> {
                                   ElevatedButton(
                                     onPressed: () async {
                                       print("click");
-                                      await sInscrire();
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                                title: const Text("Info"),
-                                                content: Text(message),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(builder: (context) => Verification()),
-                                                      );
-                                                    },
-                                                    child: const Text("OK"),
-                                                  ),
-                                                ]);
-                                          });
+                                      print(genererCode());
+                                      //await sInscrire();
+                                      sendMailInvitation('agbodjogbeesperance@gmail.com', genererCode() );
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Verification()),
+                                      );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       minimumSize: const Size(600, 50),

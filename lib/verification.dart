@@ -54,44 +54,7 @@ class _VerificationState extends State<Verification> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
-                    onPressed: () {
-                      // Action lorsque le bouton est pressé (vérifier le code de vérification)
-                      String verificationCode = '';
-                      for (var controller in _controllers) {
-                        verificationCode += controller.text;
-                      }
-                      if (verificationCode.length == 4) {
-                        // Vérifier le code de vérification
-                        print('Code de vérification: $verificationCode');
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Connexion()),
-                        );
-
-                      } else {
-                        // Afficher un message d'erreur si le code de vérification est incorrect
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Erreur'),
-                              content: const Text(
-                                'Le code de vérification doit contenir 4 chiffres.',
-                              ),
-                              actions: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(300, 60),
                       shape: RoundedRectangleBorder(

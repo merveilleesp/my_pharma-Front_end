@@ -28,8 +28,20 @@ class _ConnexionState extends State<Connexion> {
     message = "";
   }
 
+  bool validerFormulaire() {
+    if (email.text.isEmpty ||
+        motDePasse.text.isEmpty ) {
+      // Afficher un message d'erreur si des champs sont vides
+      setState(() {
+        message = "Tous les champs sont requis";
+      });
+      return false; // Retourner false si des champs sont vides
+    }
+    return true; // Retourner true si tous les champs sont remplis
+  }
+
   Future<void> seConnecter() async {
-    Uri url = Uri.parse('http://localhost:5050/users/connexion.php');
+    Uri url = Uri.parse('http://192.168.1.195:5050/users/connexion.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': email.text,
@@ -49,7 +61,11 @@ class _ConnexionState extends State<Connexion> {
           message = jsonResponse['error'];
         });
       }
-      print("I'm here");
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Accueil()),
+      );
     } catch (e) {
       print(e);
     }
@@ -123,26 +139,10 @@ class _ConnexionState extends State<Connexion> {
                               const SizedBox(height: 24.0),
                               ElevatedButton(
                                 onPressed: () async {
-                                  print("click");
-                                  await seConnecter();
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                            title: const Text("Info"),
-                                            content: Text('Informations correctes'),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(builder: (context) => Accueil()),
-                                                  );
-                                                },
-                                                child: const Text("OK"),
-                                              ),
-                                            ]);
-                                      });
+                                  if (validerFormulaire()) { // Ajoutez cette condition pour vérifier les champs
+                                    print("click");
+                                    await seConnecter();
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   minimumSize: const Size(600, 50),

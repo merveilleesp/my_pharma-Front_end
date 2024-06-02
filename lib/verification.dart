@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-//import 'package:flutter/gestures.dart';
+import 'package:http/http.dart' as http;
+import 'package:my_pharma/accueil.dart';
+import 'package:my_pharma/code.dart';
 import 'package:my_pharma/connexion.dart';
 
 class Verification extends StatefulWidget {
@@ -12,6 +18,97 @@ class _VerificationState extends State<Verification> {
     4,
         (index) => TextEditingController(),
   );
+
+  late TextEditingController email;
+  late TextEditingController confirmation_code;
+  late String message;
+
+  @override
+  void initState() {
+    super.initState();
+    email = TextEditingController();
+    confirmation_code = TextEditingController();
+    message = "";
+  }
+
+  /*String genererCode() {
+    final random = Random();
+    final code = sha1
+        .convert(utf8.encode(
+        DateTime.now().toString() + random.nextInt(1000000).toString()))
+        .toString()
+        .substring(0, 4);
+    return code;
+  }*/
+
+  String genererCode() {
+    final random = Random();
+    final String code = String.fromCharCodes(List.generate(4, (_) => random.nextInt(10) + 48));
+    return code;
+  }
+
+  Future<void> renvoyerCode(String email) async {
+    String nouveauCode = genererCode();
+    try {
+      Uri url = Uri.parse('http://192.168.1.195:5050/renvoiecode.php');
+      http.Response response = await http.post(url, body: {
+        'email': email,
+        'confirmation_code': nouveauCode,
+      });
+
+      if (response.statusCode == 200) {
+        dynamic jsonResponse = jsonDecode(response.body);
+        print('Code de confirmation mis à jour : ${jsonResponse['message']}');
+
+        // Envoyer le nouveau code par email
+        await sendMailInvitation(email, nouveauCode);
+        print('E-mail envoyé avec succès');
+      } else {
+        dynamic jsonResponse = jsonDecode(response.body);
+        print('Erreur lors de la mise à jour du code : ${jsonResponse['error']}');
+      }
+    } catch (e) {
+      print('Erreur lors de la mise à jour du code : $e');
+    }
+  }
+
+
+   Future<void> validerInscription() async {
+    Uri url = Uri.parse('http://192.168.1.195:5050/users/verification.php');
+    try {
+      http.Response response = await http.post(url, body: {
+        'email': email.text,
+        'confirmation_code': _controllers.map((controller) => controller.text).join(),
+      });
+
+      dynamic jsonResponse = jsonDecode(response.body);
+      print(jsonResponse);
+
+      if (response.statusCode == 200) {
+        // Si le code est correct, affichez un message de succès à l'utilisateur
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => Connexion()),
+        );
+      } else {
+        // Si le code est incorrect, affichez un message d'erreur à l'utilisateur
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Code de confirmation incorrect!'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } catch (e) {
+      // En cas d'erreur, affichez un message d'erreur générique à l'utilisateur
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Une erreur s\'est produite!'),
+        backgroundColor: Colors.red,
+      ));
+      print(e);
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +151,9 @@ class _VerificationState extends State<Verification> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      validerInscription();
+                    },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(300, 60),
                       shape: RoundedRectangleBorder(
@@ -69,38 +168,7 @@ class _VerificationState extends State<Verification> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      // Action lorsque le bouton est pressé (vérifier le code de vérification)
-                      String verificationCode = '';
-                      for (var controller in _controllers) {
-                        verificationCode += controller.text;
-                      }
-                      if (verificationCode.length == 4) {
-                        // Vérifier le code de vérification
-                        print('Code de vérification: $verificationCode');
-                      } else {
-                        // Afficher un message d'erreur si le code de vérification est incorrect
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Erreur'),
-                              content: const Text(
-                                  'Le code de vérification doit contenir 4 chiffres.'),
-                              actions: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pop(); // Ferme le dialogue actuel ou le menu contextuel
-                                    Navigator.pushNamed(context,
-                                        '/connexion'); // Navigue vers une nouvelle page nommée '/nouvelle_page'
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
+                      renvoyerCode('agbodjogbeesperance@gmail.com');
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(300, 60),

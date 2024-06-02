@@ -23,8 +23,8 @@ class _InscriptionState extends State<Inscription> {
   late TextEditingController prenom;
   late TextEditingController email;
   late TextEditingController telephone;
-  late TextEditingController motDePasse;
-  late TextEditingController confirmationMotDePasse;
+  late TextEditingController mot_de_passe;
+  late TextEditingController confirmation_mot_de_passe;
   late bool _ismotDePasseVisible;
   late String message;
 
@@ -35,13 +35,13 @@ class _InscriptionState extends State<Inscription> {
     prenom = TextEditingController();
     email = TextEditingController();
     telephone = TextEditingController();
-    motDePasse = TextEditingController();
-    confirmationMotDePasse = TextEditingController();
+    mot_de_passe = TextEditingController();
+    confirmation_mot_de_passe = TextEditingController();
     _ismotDePasseVisible = false;
     message = "";
   }
 
-  String genererCode() {
+  /*String genererCode() {
     final random = Random();
     final code = sha1
         .convert(utf8.encode(
@@ -49,38 +49,79 @@ class _InscriptionState extends State<Inscription> {
         .toString()
         .substring(0, 4);
     return code;
+  }*/
+  String genererCode() {
+    final random = Random();
+    final String code = String.fromCharCodes(List.generate(4, (_) => random.nextInt(10) + 48));
+    return code;
   }
+
+  bool validerFormulaire() {
+    if (nom.text.isEmpty ||
+        prenom.text.isEmpty ||
+        email.text.isEmpty ||
+        telephone.text.isEmpty ||
+        mot_de_passe.text.isEmpty ||
+        confirmation_mot_de_passe.text.isEmpty) {
+      // Afficher un message d'erreur si des champs sont vides
+      setState(() {
+        message = "Tous les champs sont requis";
+      });
+      return false; // Retourner false si des champs sont vides
+    }
+    return true; // Retourner true si tous les champs sont remplis
+  }
+
 
   Future<void> sInscrire() async {
-    Uri url = Uri.parse('http://localhost:5050/mypharma.php');
-    try {
-      http.Response response = await http.post(url, body: {
-        'nom': nom.text,
-        'prenom': prenom.text,
-        'email': email.text,
-        'telephone': telephone.text,
-        'mot_de_passe': motDePasse.text,
-        'confirmation_mot_de_passe': confirmationMotDePasse.text
-      });
-      dynamic jsonResponse = jsonDecode(response.body);
-      print(jsonResponse);
+    if (!validerFormulaire()) {
+      print('Remplissez les champs');
+      return;
+    } else {
+      try {
+        // Générer le code de confirmation
+        String confirmationCode = genererCode();
 
-      if (response.statusCode == 200) {
-        // Si le serveur retourne une réponse OK, parsez le JSON
-        setState(() {
-          message = jsonResponse['message'];
+        // Insérer les données de l'utilisateur et le code de confirmation dans la base de données
+        Uri url = Uri.parse('http://192.168.1.195:5050/users/mypharma.php');
+        http.Response response = await http.post(url, body: {
+          'nom': nom.text,
+          'prenom': prenom.text,
+          'email': email.text,
+          'telephone': telephone.text,
+          'mot_de_passe': mot_de_passe.text,
+          'confirmation_mot_de_passe':confirmation_mot_de_passe.text,
+          'confirmation_code': confirmationCode
         });
-      } else {
-        // Si le serveur retourne une réponse non-OK, lancez une exception.
+
+        // Vérifier si l'inscription a réussi
+        if (response.statusCode == 200) {
+          // Envoi de l'e-mail d'invitation avec le code de confirmation
+          await sendMailInvitation(email.text, confirmationCode);
+          print('Inscription réussie, e-mail envoyé avec succès');
+          // Afficher un message de succès ou naviguer vers une autre page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Verification()),
+          );
+        } else {
+          dynamic jsonResponse = jsonDecode(response.body);
+          print('Erreur lors de l\'inscription : ${jsonResponse['error']}');
+          setState(() {
+            message = jsonResponse['error'];
+          });
+        }
+      } catch (e) {
+        print('Erreur lors de l\'inscription : $e');
         setState(() {
-          message = jsonResponse['error'];
+          message = 'Erreur lors de l\'inscription';
         });
       }
-      print("I'm here");
-    } catch (e) {
-      print(e);
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +227,7 @@ class _InscriptionState extends State<Inscription> {
                                     ),
                                   ),
                                   TextField(
-                                    controller: motDePasse,
+                                    controller: mot_de_passe,
                                     obscureText: !_ismotDePasseVisible,
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(
@@ -211,7 +252,7 @@ class _InscriptionState extends State<Inscription> {
                                     ),
                                   ),
                                   TextField(
-                                    controller: confirmationMotDePasse,
+                                    controller: confirmation_mot_de_passe,
                                     obscureText: !_ismotDePasseVisible,
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(
@@ -231,14 +272,8 @@ class _InscriptionState extends State<Inscription> {
                                   ElevatedButton(
                                     onPressed: () async {
                                       print("click");
-                                      print(genererCode());
-                                      //await sInscrire();
-                                      sendMailInvitation('agbodjogbeesperance@gmail.com', genererCode() );
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => Verification()),
-                                      );
+                                      await sInscrire();
+                                      //sendMailInvitation('agbodjogbeesperance@gmail.com', genererCode() );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       minimumSize: const Size(600, 50),

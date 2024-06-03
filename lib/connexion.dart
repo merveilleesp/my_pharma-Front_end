@@ -41,7 +41,7 @@ class _ConnexionState extends State<Connexion> {
   }
 
   Future<void> seConnecter() async {
-    Uri url = Uri.parse('http://192.168.1.195:5050/users/connexion.php');
+    Uri url = Uri.parse('http://localhost:5050/users/connexion.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': email.text,
@@ -55,17 +55,23 @@ class _ConnexionState extends State<Connexion> {
         setState(() {
           message = jsonResponse['message'];
         });
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Accueil()),
+        );
       } else {
         // Si le serveur retourne une réponse non-OK, lancez une exception.
         setState(() {
           message = jsonResponse['error'];
         });
+        // Afficher un SnackBar pour indiquer que les identifiants sont incorrects
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Identifiants incorrects'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => Accueil()),
-      );
     } catch (e) {
       print(e);
     }

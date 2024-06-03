@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_pharma/Models/PharmacieCard.dart';
 import 'Models/Commande.dart';
 import 'Models/CommandeManager.dart';
 import 'Models/MedicamentCartItem.dart';
-import 'medicaments.dart';
 import 'commande.dart';
 
 class PanierPage extends StatefulWidget {
@@ -37,26 +37,6 @@ class _PanierPageState extends State<PanierPage> {
     });
   }
 
-  Future<void> createOrderWithDelivery() async {
-    var url = Uri.parse('http://localhost:8080/users/commande.php');
-    var response = await http.post(url);
-    if (response.statusCode == 200) {
-      print('Commande avec livraison créée avec succès');
-    } else {
-      print('Erreur lors de la création de la commande avec livraison');
-    }
-  }
-
-  Future<void> createOrderWithoutDelivery() async {
-    var url = Uri.parse('http://localhost:8080/users/commande.php');
-    var response = await http.post(url);
-    if (response.statusCode == 200) {
-      print('Commande sans livraison créée avec succès');
-    } else {
-      print('Erreur lors de la création de la commande sans livraison');
-    }
-  }
-
   void showValidationOptions(BuildContext context, List<MedicamentCartItem> medocs, int indexPharmacieCard, double montant) {
     showModalBottomSheet(
       context: context,
@@ -74,15 +54,13 @@ class _PanierPageState extends State<PanierPage> {
                 onTap: () {
                   Navigator.pop(context);
                   createOrder(context, true, indexPharmacieCard, medocs, montant);
-                  createOrderWithDelivery();
                 },
               ),
               ListTile(
                 title: Text('Sans livraison'),
                 onTap: () {
                   Navigator.pop(context);
-                  createOrder(context, false,indexPharmacieCard, medocs, montant);
-                  createOrderWithoutDelivery();
+                  createOrder(context, false, indexPharmacieCard, medocs, montant);
                 },
               ),
             ],
@@ -92,8 +70,13 @@ class _PanierPageState extends State<PanierPage> {
     );
   }
 
-  void createOrder(BuildContext context, bool avecLivraison,int indexPharmacieCard, List<MedicamentCartItem> medocs, double total) {
-    final int numero = DateTime.now().millisecondsSinceEpoch.toInt();
+  String generateCommandeNumber() {
+    // Générer un numéro de commande unique (par exemple, en utilisant la date et un identifiant unique)
+    return 'CMD-${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  void createOrder(BuildContext context, bool avecLivraison, int indexPharmacieCard, List<MedicamentCartItem> medocs, double total) {
+    final String numero = generateCommandeNumber();
     final DateTime date = DateTime.now();
     final double montant = total;
 
@@ -119,7 +102,7 @@ class _PanierPageState extends State<PanierPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CommandePage(commande: commande, items: medocs,),
+        builder: (context) => CommandePage(commande: commande, items: medocs, idUtilisateur: 1),
       ),
     );
   }
@@ -238,7 +221,7 @@ class _PanierPageState extends State<PanierPage> {
                           onPressed: widget.panier.isEmpty
                               ? null
                               : () {
-                            showValidationOptions(context, item.medicaments,index , item.prixTotal());
+                            showValidationOptions(context, item.medicaments, index, item.prixTotal());
                           },
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16.0),

@@ -54,11 +54,11 @@ class _SearchPageState extends State<SearchPage> {
   void addToCart(BuildContext context, Medicament medicament, String pharmacie) {
     final existingCartItem = panier.firstWhere(
           (item) => item.pharmacieName == pharmacie,
-      orElse: () => PharmacieCard(pharmacieName: "", medicamentCard: MedicamentCartItem(medicament: Medicament(nom: "", prix: 0))),
+      orElse: () => PharmacieCard(pharmacieName: "", medicamentCard: MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0))),
     );
     final existingMedicamentCard = existingCartItem.medicaments.firstWhere(
           (item) => item.medicament.nom == medicament.nom,
-      orElse: () => MedicamentCartItem(medicament: Medicament(nom: "", prix: 0))
+      orElse: () => MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0))
     );
     if (existingCartItem.pharmacieName.isNotEmpty) {
         if(existingMedicamentCard.medicament.nom.isNotEmpty){
@@ -230,6 +230,7 @@ class _SearchPageState extends State<SearchPage> {
                               addToCart(
                                   context,
                                   Medicament(
+                                    id: stockSearch[index]["id"] ?? 0,
                                     nom: stockSearch[index]["medicament"],
                                     prix: double.parse(stockSearch[index]['prix'].toString()),
                                   ),

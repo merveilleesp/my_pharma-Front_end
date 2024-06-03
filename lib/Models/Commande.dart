@@ -1,7 +1,7 @@
 import 'MedicamentCartItem.dart';
 
 class Commande {
-  final int numero;
+  final String numero;
   final DateTime date;
   final bool avecLivraison;
   final List<MedicamentCartItem> items;

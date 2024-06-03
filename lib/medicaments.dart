@@ -109,6 +109,7 @@ class _MedicamentsState extends State<Medicaments> {
       // Générez un prix aléatoire pour chaque médicament
       final double prix = (index + 1) * 2.5; // Par exemple, un prix simple
       return Medicament(
+        id: index + 1,
         nom: 'designation ${index + 1}',
         prix: prix,
       );

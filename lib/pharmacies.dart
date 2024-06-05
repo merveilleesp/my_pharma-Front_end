@@ -41,7 +41,7 @@ class Pharmacies extends StatefulWidget {
 }
 
 Future<dynamic> getPharmacies() async {
-  var url = Uri.http('localhost:8080', 'users/recupdonnees.php');
+  var url = Uri.http('192.168.1.195:8080', 'users/recupdonnees.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});

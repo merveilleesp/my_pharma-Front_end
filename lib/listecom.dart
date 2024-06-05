@@ -15,7 +15,7 @@ class ListeCommandesPage extends StatelessWidget {
       try {
         // Envoi de la requête POST à l'API
         var response = await http.post(
-          Uri.parse('http://localhost:8080/users/connexion.php'),
+          Uri.parse('http://192.168.1.195:8080/users/connexion.php'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"email": email, "mot_de_passe": motDePasse}),
         );

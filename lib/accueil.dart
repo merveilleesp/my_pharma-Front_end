@@ -22,7 +22,7 @@ class Accueil extends StatefulWidget {
 }
 
 Future<dynamic> getClasse() async {
-  var url = Uri.http('localhost:8080', 'users/classethera.php');
+  var url = Uri.http('192.168.1.195:8080', 'users/classethera.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});
@@ -285,39 +285,46 @@ class _AccueilState extends State<Accueil> {
                         //Début du scroll des symptômes
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          // padding: EdgeInsets.symmetric(horizontal: 10.0),
                           child: !isOK
                               ? const Center(child: CircularProgressIndicator(color: Colors.teal))
                               : Row(
                             children: List.generate(
-                                8,
-                                (index) => Column(
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {},
-                                          style: ButtonStyle(
-                                            padding: MaterialStateProperty.all(
-                                                EdgeInsets.zero),
-                                            shape: MaterialStateProperty.all(
-                                                const CircleBorder()),
-                                          ),
-                                          child: Container(
-                                            width: 75,
-                                            height: 75,
-                                            margin: const EdgeInsets.all(8),
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Color(0xFF009688),
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          '${stockclasse[index][0]}',
-                                          style: TextStyle(
-                                              color: Color(0xFF009688), fontSize: 12),
-                                        )
-                                      ],
-                                    )),
+                              8,
+                                  (index) => Column(
+                                children: [
+                                  TextButton(
+                                    onPressed: () {},
+                                    style: ButtonStyle(
+                                      padding: MaterialStateProperty.all(EdgeInsets.zero),
+                                      shape: MaterialStateProperty.all(const CircleBorder()),
+                                    ),
+                                    child: Container(
+                                      width: 75,
+                                      height: 75,
+                                      margin: const EdgeInsets.all(8),
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF009688),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 75, // Limite la largeur du conteneur de texte
+                                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Text(
+                                      '${stockclasse[index][0]}',
+                                      textAlign: TextAlign.center, // Centre le texte
+                                      style: TextStyle(
+                                        color: Color(0xFF009688),
+                                        fontSize: 12,
+                                      ),
+                                      overflow: TextOverflow.ellipsis, // Ajoute des points de suspension si le texte est trop long
+                                      maxLines: 2, // Limite à 2 lignes de texte
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                         //Fin du scroll des symptômes

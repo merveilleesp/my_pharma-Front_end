@@ -21,9 +21,8 @@ sendMailInvitation(
   // ..text = 'This is the plain text.\nThis is line 2 of the text part.'
     ..html =
         "<h1 style=\"color: #44a8fa;font-size: xxx-large; text-align:center\">Code de confirmation</h1> "
-        "<p style=\"line-height: 2;text-align:center\">Vous avez été selectionné pour participer à une election. <br>  "
-        "  Voyez ci-dessous les informations qui vous permettront de voter: <br>   "
-        " <span>Code du Vote: </span> "
+        "<p style=\"line-height: 2;text-align:center\">Entrez le code suivant pour finaliser votre authentification.. <br>  "
+        " <span>Code de confirmation: </span> "
         "<span style=\"font-weight: bold;\">$confirmation_code</span><br>";
 
   try {

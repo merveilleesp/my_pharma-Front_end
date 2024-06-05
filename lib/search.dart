@@ -21,7 +21,7 @@ class SearchPage extends StatefulWidget {
 }
 
 Future<dynamic> getPharm(query) async {
-  var url = Uri.http('localhost:8080', 'users/dispomedinpharm.php');
+  var url = Uri.http('192.168.1.195:8080', 'users/dispomedinpharm.php');
   url.toString();
   try {
     var response = await http.post(url, body: {'query': query});
@@ -235,7 +235,6 @@ class _SearchPageState extends State<SearchPage> {
                                     prix: double.parse(stockSearch[index]['prix'].toString()),
                                   ),
                                   stockSearch[index]["pharmacie"]
-
                               );
                             },
                           ),

@@ -113,20 +113,6 @@ class DetailsPharmacies extends StatelessWidget {
                 ),
               ),
             ),
-            Divider(height: 0.5, color: Colors.grey[300]),
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.only(left: 35, top: 16, right:35, bottom: 16),
-              child: InformationTile(
-                icon: Icons.payment,
-                title: 'Moyens de paiements',
-                content: moyensPaiements,
-                titleStyle: TextStyle(
-                  fontSize: 18,
-                  color: Colors.teal,
-                ),
-              ),
-            ),
           ],
         ),
       ),

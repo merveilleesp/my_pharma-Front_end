@@ -31,9 +31,12 @@ class _PanierPageState extends State<PanierPage> {
     });
   }
 
-  void removeFromCart(int index) {
+  void removeMedicamentFromCart(int indexPharmacie, int indexMedicament) {
     setState(() {
-      widget.panier.removeAt(index);
+      widget.panier[indexPharmacie].medicaments.removeAt(indexMedicament);
+      if (widget.panier[indexPharmacie].medicaments.isEmpty) {
+        widget.panier.removeAt(indexPharmacie);
+      }
     });
   }
 
@@ -166,6 +169,12 @@ class _PanierPageState extends State<PanierPage> {
                                               setState(() {
                                                 medoc.medicament.isFavorite = !medoc.medicament.isFavorite;
                                               });
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete),
+                                            onPressed: () {
+                                              removeMedicamentFromCart(index, indexMedoc);
                                             },
                                           ),
                                         ],

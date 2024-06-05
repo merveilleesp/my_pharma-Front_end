@@ -10,6 +10,7 @@ import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/parentwidget.dart';
 import 'package:my_pharma/profil.dart';
+import 'package:my_pharma/search.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'panier.dart';
@@ -25,7 +26,7 @@ class Medicaments extends StatefulWidget {
 }
 
 Future<dynamic> getMedicaments() async {
-  var url = Uri.http('localhost:8080', 'users/recupdonneesme.php');
+  var url = Uri.http('192.168.1.195:8080', 'users/recupdonneesme.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});
@@ -358,7 +359,20 @@ class _MedicamentsState extends State<Medicaments> {
                                       toggleFavorite(index);
                                     },
                                   ),
-
+                                  IconButton(
+                                    icon: Icon(Icons.shopping_cart, color: Colors.teal,),
+                                    onPressed: () {
+                                      /*addToCart(
+                                          context,
+                                          Medicament(
+                                            id: stockSearch[index]["id"] ?? 0,
+                                            nom: stockSearch[index]["medicament"],
+                                            prix: double.parse(stockSearch[index]['prix'].toString()),
+                                          ),
+                                          stockSearch[index]["pharmacie"]
+                                      );*/
+                                    },
+                                  ),
                                 ],
                               ),
                             ],

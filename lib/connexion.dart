@@ -41,7 +41,7 @@ class _ConnexionState extends State<Connexion> {
   }
 
   Future<void> seConnecter() async {
-    Uri url = Uri.parse('http://localhost:5050/users/connexion.php');
+    Uri url = Uri.parse('http://192.168.1.195:5050/users/connexion.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': email.text,

@@ -39,7 +39,7 @@ class CommandePage extends StatelessWidget {
 
     try {
       var response = await http.post(
-        Uri.parse('http://localhost:8080/users/commande.php'),
+        Uri.parse('http://192.168.1.195:8080/users/commande.php'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(data),
       );

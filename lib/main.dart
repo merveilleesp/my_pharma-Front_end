@@ -2,21 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/connexion.dart';
-import 'package:my_pharma/detailsmedocs.dart';
-//import 'package:my_pharma/connexion.dart';
-//import 'package:my_pharma/detailsmedocs.dart';
-//import 'package:my_pharma/inscription.dart';
-//import 'package:my_pharma/verification.dart';
-//import 'package:my_pharma/pharmacies.dart';
-//import 'package:my_pharma/medicaments.dart';
-//import 'package:my_pharma/profil.dart';
-import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/kkiapays.dart';
-import 'package:my_pharma/medicaments.dart';
-import 'package:my_pharma/onboarding.dart';
 import 'package:my_pharma/pharmacies.dart';
-//import 'package:my_pharma/kkiapays.dart';
-//import 'package:my_pharma/assurance.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -66,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
       Future.delayed(const Duration(seconds: 5), () {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Onboarding()),
+          MaterialPageRoute(builder: (context) => Connexion()),
         );
       });
     }

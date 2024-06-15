@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -15,24 +16,52 @@ import 'package:my_pharma/profil.dart'; // Importation de la bibliothèque math�
 class Pharmacie {
   final String nom;
   bool estDeGarde;
-  String distance;
+  String localite;
+  double latitude; // Latitude de la pharmacie
+  double longitude; // Longitude de la pharmacie
+  String distance; // Distance de l'utilisateur à la pharmacie
 
   Pharmacie({
     required this.nom,
     required this.estDeGarde,
-    required this.distance,
+    required this.localite,
+    required this.latitude,
+    required this.longitude,
+    required this.distance, // Distance initiale
   });
 
-  // Méthode pour changer l'état de garde chaque semaine
-  void changerEtatDeGarde() {
-    estDeGarde = !estDeGarde;
+// Méthode pour changer l'état de garde de manière aléatoire
+  void genererEtatDeGardeAleatoire() {
+    estDeGarde = Random().nextInt(100) < 50; // 50% de chances d'être vrai
+
   }
 
-  // Méthode pour mettre à jour la distance
-  void mettreAJourDistance() {
-    // Simulation de la mise à jour de la distance avec une valeur aléatoire pour cet exemple
-    distance = '${(Random().nextDouble() * 10).toStringAsFixed(2)} km';
+  // Mettre à jour la distance en fonction de la position de l'utilisateur
+  Future<double> calculateDistance(Position userPosition) async {
+    double distanceInKm = calculateDistanceInKm(
+      userPosition.latitude,
+      userPosition.longitude,
+      this.latitude,
+      this.longitude,
+    );
+    return distanceInKm;
   }
+}
+
+double calculateDistanceInKm(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
+  const int earthRadius = 6371;
+  double latDistance = degreesToRadians(endLatitude - startLatitude);
+  double lonDistance = degreesToRadians(endLongitude - startLongitude);
+  double a = sin(latDistance / 2) * sin(latDistance / 2) +
+      cos(degreesToRadians(startLatitude)) * cos(degreesToRadians(endLatitude)) *
+          sin(lonDistance / 2) * sin(lonDistance / 2);
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  double distance = earthRadius * c;
+  return distance;
+}
+
+double degreesToRadians(double degrees) {
+  return degrees * pi / 180;
 }
 
 class Pharmacies extends StatefulWidget {
@@ -42,7 +71,6 @@ class Pharmacies extends StatefulWidget {
 
 Future<dynamic> getPharmacies() async {
   var url = Uri.http('192.168.1.195:8080', 'users/recupdonnees.php');
-  url.toString();
   try {
     var response = await http.post(url, body: {});
     print('msg: ${response.statusCode}');
@@ -69,111 +97,175 @@ Future<dynamic> getPharmacies() async {
 class _PharmaciesState extends State<Pharmacies> {
   bool toggleValue = false;
   List<Pharmacie> pharmacies = [];
-  List<Pharmacie> pharmaciesInitiales = []; // Copie de la liste initiale des pharmacies
   List<Pharmacie> pharmaciesAffichees = [];
   dynamic stockPharmacies;
   dynamic dataPharmacies;
+  Position? _currentPosition;
 
   toggleButton() {
     setState(() {
       toggleValue = !toggleValue;
+      if (toggleValue) {
+        pharmaciesAffichees = pharmacies.where((pharmacie) => pharmacie.estDeGarde).toList();
+      } else {
+        pharmaciesAffichees = List.from(pharmacies);
+      }
     });
   }
 
-  // Méthode pour mettre à jour l'état de garde chaque semaine
-  void mettreAJourEtatDeGarde() {
-    for (var pharmacie in pharmacies) {
-      pharmacie.changerEtatDeGarde();
-    }
-  }
-
-  // Méthode pour mettre à jour les distances chaque fois que nécessaire
-  void mettreAJourDistances() {
-    for (var pharmacie in pharmacies) {
-      pharmacie.mettreAJourDistance();
-    }
-  }
 
   // Fonction pour générer des données de pharmacies (pour cet exemple)
-  List<Pharmacie> genererDonneesPharmacies() {
-    return List.generate(20, (index) {
+  List<Pharmacie> genererDonneesPharmacies(dynamic data) {
+    return data.map<Pharmacie>((item) {
       return Pharmacie(
-        nom: 'Pharmacie ${index + 1}',
-        estDeGarde: Random().nextBool(), // Etat de garde aléatoire pour cet exemple
-        distance: '${(Random().nextDouble() * 10).toStringAsFixed(2)} km', // Distance aléatoire pour cet exemple
+        nom: item['pharmacie'],
+        estDeGarde: item['estDeGarde'] == 'true',
+        localite: item['localite'],
+        latitude: double.parse(item['latitude']),
+        longitude: double.parse(item['longitude']),
+        distance: 'Calculating...', // Initialisation
       );
-    });
+    }).toList();
   }
+
 
   // Méthode pour filtrer les pharmacies en fonction du texte de recherche
-  Future<void> filterPharmaciesFromServer(String query) async {
-    var url = Uri.http('localhost:8080', 'users/filtrepharmacies.php');
-    try {
-      var response = await http.post(url, body: {'query': query});
-      print('msg: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          pharmaciesAffichees = data.map<Pharmacie>((json) {
-            return Pharmacie(
-              nom: json["pharmacie"],
-              estDeGarde: json["estDeGarde"], // Assurez-vous que cette clé correspond à votre réponse JSON
-              distance: json["distance"],     // Assurez-vous que cette clé correspond à votre réponse JSON
-            );
-          }).toList();
-        });
-      } else {
-        print(response.statusCode);
-        Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
-      Fluttertoast.showToast(msg: "Vérifiez votre connexion");
-      print(e);
-    }
-  }
-
 
   void filterPharmacies(String query) {
     query = query.toUpperCase();
     setState(() {
-
-    if (query.isNotEmpty) {
-      stockPharmacies = dataPharmacies.where((item)
-        {
-          if(item['pharmacie'].contains(query)){
-            return true;
-          }else{
-            return false;
-          }
+      if (query.isNotEmpty) {
+        pharmaciesAffichees = pharmacies.where((pharmacie) {
+          return pharmacie.nom.toUpperCase().contains(query) || pharmacie.localite.toUpperCase().contains(query);
         }).toList();
-    } else {
-        stockPharmacies = dataPharmacies;
-
-    }
+      } else {
+        pharmaciesAffichees = List.from(pharmacies);
+      }
     });
   }
 
+  Future<void> _checkLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _showLocationDialog();
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showLocationDialog();
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showLocationDialog();
+      return;
+    }
+
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _currentPosition = position;
+      });
+      // Mettre à jour les distances pour chaque pharmacie
+      await updatePharmaciesDistance(position);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> updatePharmaciesDistance(Position userPosition) async {
+    for (var pharmacie in pharmacies) {
+      double newDistance = await pharmacie.calculateDistance(userPosition);
+      setState(() {
+        pharmacie.distance = '${newDistance.toStringAsFixed(2)} km';
+      });
+    }
+
+    // Trier pharmacies par distance
+    pharmacies.sort((a, b) => double.parse(a.distance.split(' ')[0]).compareTo(double.parse(b.distance.split(' ')[0])));
+
+    // Mettre à jour pharmaciesAffichees avec les pharmacies triées
+    setState(() {
+      pharmaciesAffichees = List.from(pharmacies);
+    });
+  }
 
   @override
   void initState() {
-    getPharmacies().then((value) {
-      stockPharmacies = value;
-      dataPharmacies = value;
-      print(stockPharmacies[1]["pharmacie"]);
-    });
     super.initState();
-    pharmacies = genererDonneesPharmacies();
-    pharmaciesInitiales = List.from(pharmacies); // Générer les données initiales des pharmacies
+    _checkLocationPermission().then((_) {
+      getPharmacies().then((value) {
+        if (value != null) {
+          stockPharmacies = value;
+          dataPharmacies = value;
+          pharmacies = genererDonneesPharmacies(stockPharmacies);
+          pharmacies.forEach((pharmacie) {
+            pharmacie.genererEtatDeGardeAleatoire(); // Générer l'état de garde aléatoire
+          });
+          pharmaciesAffichees = List.from(pharmacies);
+          _getCurrentLocation();
+        }
+      });
+    });
   }
+
+
+  void _showLocationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Activer la localisation"),
+          content: Text("Cette application nécessite l'activation de la localisation pour afficher les pharmacies les plus proches."),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Activer"),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Fermer le dialogue avant de vérifier la localisation
+                bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                if (!serviceEnabled) {
+                  serviceEnabled = await Geolocator.openLocationSettings();
+                  if (!serviceEnabled) {
+                    _showLocationDialog();
+                    return;
+                  }
+                }
+                LocationPermission permission = await Geolocator.checkPermission();
+                if (permission == LocationPermission.denied) {
+                  permission = await Geolocator.requestPermission();
+                  if (permission == LocationPermission.denied) {
+                    _showLocationDialog();
+                    return;
+                  }
+                }
+                if (permission == LocationPermission.deniedForever) {
+                  _showLocationDialog();
+                  return;
+                }
+                _getCurrentLocation();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    List<Pharmacie> pharmaciesAffichees = toggleValue
-        ? pharmaciesInitiales.where((pharmacie) => pharmacie.estDeGarde).toList()
-        : pharmacies; //.where((pharmacie) => pharmacie.nom.toLowerCase().contains(searchController.text.toLowerCase())).toList();
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -211,286 +303,177 @@ class _PharmaciesState extends State<Pharmacies> {
                 ),
               ),
               ListTile(
-                title: const Text('Accueil'),
                 leading: const Icon(Icons.home),
+                title: const Text('Accueil'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Accueil()),
-                  );
-                  // Action à effectuer lorsque l'option Accueil est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Accueil()));
                 },
               ),
               ListTile(
-                title: const Text('Mon Profil'),
-                leading: const Icon(Icons.person),
+                leading: const Icon(Icons.local_pharmacy),
+                title: const Text('Pharmacies'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Profil()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Pharmacies()));
                 },
               ),
               ListTile(
-                title: const Text('Assurances'), // Ajout de l'élément "Assurances"
-                leading: const Icon(Icons.security), // Icône pour "Assurances"
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Assurance()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Voir Panier'),
-                leading: const Icon(Icons.shopping_cart),
-                onTap: () {
-                  // Passer le panier à la page du panier
-                },
-              ),
-              ListTile(
-                title: const Text('Mes Commandes'),
-                leading: const Icon(Icons.shopping_basket),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Mes Favoris'),
                 leading: const Icon(Icons.favorite),
+                title: const Text('Favoris'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Favoris()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Favoris()));
                 },
               ),
               ListTile(
-                title: const Text('Suggérer un Produit'),
-                leading: const Icon(Icons.lightbulb),
+                leading: const Icon(Icons.list),
+                title: const Text('Liste de courses'),
                 onTap: () {
-                  // Action à effectuer lorsque l'option Suggérer un Produit est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ListeCommandesPage()));
                 },
               ),
               ListTile(
-                title: const Text('Inviter un Ami'),
-                leading: const Icon(Icons.person_add),
+                leading: const Icon(Icons.business),
+                title: const Text('Assurances'),
                 onTap: () {
-                  // Action à effectuer lorsque l'option Inviter un Ami est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Assurance()));
                 },
               ),
               ListTile(
-                title: const Text('Nous Contacter'),
-                leading: const Icon(Icons.contact_mail),
+                leading: const Icon(Icons.account_circle),
+                title: const Text('Profil'),
                 onTap: () {
-                  // Action à effectuer lorsque l'option Nous Contacter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Profil()));
                 },
               ),
               ListTile(
-                title: const Text('Mentions Légales'),
-                leading: const Icon(Icons.gavel),
-                onTap: () {
-                  // Action à effectuer lorsque l'option Mentions Légales est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('A Propos de Nous'),
-                leading: const Icon(Icons.info),
-                onTap: () {
-                  // Action à effectuer lorsque l'option A Propos de Nous est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Se Déconnecter'),
                 leading: const Icon(Icons.logout),
+                title: const Text('Déconnexion'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Connexion()),
-                  ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Connexion()));
                 },
               ),
             ],
           ),
         ),
-        body: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextField(
-                      onChanged: (value) {
-                        // Appeler la méthode de filtrage à chaque modification du texte de recherche
-                        filterPharmacies(value);
-                      },
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.only(left: 20.0),
-                        hintText: 'Rechercher une pharmacie...',
-                      ),
-                      style: const TextStyle(fontSize: 12),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                onChanged: (value) {
+                  // Appeler la méthode de filtrage à chaque modification du texte de recherche
+                  filterPharmacies(value);
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'TOUTES LES PHARMACIES',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF009688),
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 1000),
-                        height: 40,
-                        width: 90,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: toggleValue
-                              ? Colors.greenAccent[100]
-                              : Colors.grey.withOpacity(0.5),
-                        ),
-                        child: Stack(
-                          children: <Widget>[
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 1000),
-                              curve: Curves.easeIn,
-                              top: 2,
-                              left: toggleValue ? 50.0 : 0.0,
-                              right: toggleValue ? 0.0 : 50.0,
-                              child: InkWell(
-                                onTap: toggleButton,
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 1000),
-                                  transitionBuilder: (Widget child,
-                                      Animation<double> animation) {
-                                    return ScaleTransition(
-                                      child: child,
-                                      scale: animation,
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 35,
-                                    height: 35,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                      border: toggleValue
-                                          ? null
-                                          : Border.all(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: stockPharmacies == null
-                        ? const Center(child: CircularProgressIndicator(color: Colors.teal))
-                        : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      itemCount: stockPharmacies.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        Pharmacie pharmacie = pharmaciesAffichees[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 1,
-                                blurRadius: 1,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => DetailsPharmacies(id: stockPharmacies[index]["id"]),)
-                              );
-                              print('Pharmacie ${index + 1} sélectionnée');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(10.0),
-                              ),
-                              elevation: 3,
-                              foregroundColor: Colors.white,
-                              shadowColor:
-                              Colors.white.withOpacity(0.5),
-                              minimumSize: const Size(100, 20),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        stockPharmacies[index]["pharmacie"],
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.teal,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Distance: ${pharmacie.distance}',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Icon(
-                                  pharmacie.estDeGarde
-                                      ? Icons.nightlight_round
-                                      : null,
-                                  color: pharmacie.estDeGarde
-                                      ? Colors.green
-                                      : null,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  contentPadding: EdgeInsets.only(left: 20.0),
+                  hintText: 'Rechercher une pharmacie...',
+                ),
+                style: const TextStyle(fontSize: 12),
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 10),
+            SizedBox(height: 10),
+            Padding(
+                padding: const EdgeInsets.all(16.0),
+              child :Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'TOUTES LES PHARMACIES',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF009688),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: toggleButton,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 1000),
+                    height: 40,
+                    width: 90,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: toggleValue
+                          ? Colors.greenAccent[100]
+                          : Colors.grey.withOpacity(0.5),
+                    ),
+                    child: Stack(
+                      children: <Widget>[
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 1000),
+                          curve: Curves.easeIn,
+                          top: 2,
+                          left: toggleValue ? 50.0 : 0.0,
+                          right: toggleValue ? 0.0 : 50.0,
+                          child: InkWell(
+                            onTap: toggleButton,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 1000),
+                              transitionBuilder: (Widget child,
+                                  Animation<double> animation) {
+                                return ScaleTransition(
+                                  child: child,
+                                  scale: animation,
+                                );
+                              },
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  border: toggleValue
+                                      ? null
+                                      : Border.all(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.builder(
+                itemCount: pharmaciesAffichees.length,
+                itemBuilder: (context, index) {
+                  final pharmacie = pharmaciesAffichees[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(pharmacie.nom),
+                      subtitle: Text(pharmacie.distance),
+                      trailing: Transform.rotate(
+                        angle: -pi / 4, // Angle de rotation, ajustez selon votre préférence
+                        child: Icon(
+                          pharmacie.estDeGarde ? Icons.nightlight_round : null,
+                          color: pharmacie.estDeGarde ? Colors.green : Colors.grey,
+                        ),
+                      ),
+                      onTap: () {
+                        /*Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailsPharmacies(id: id),
+                          ),
+                        );*/
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

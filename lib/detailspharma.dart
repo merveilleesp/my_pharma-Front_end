@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DetailsPharmacies extends StatelessWidget {
   final String nomPharmacie = "";
@@ -13,6 +16,16 @@ class DetailsPharmacies extends StatelessWidget {
   DetailsPharmacies({
     required this.id,
   });
+  void openGoogleMaps(double latitude, double longitude) async {
+    String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
+
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
+    } else {
+      throw 'Could not open the map.';
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +82,26 @@ class DetailsPharmacies extends StatelessWidget {
                   fontSize: 18,
                   color: Colors.teal,
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 35, top: 16, right:35, bottom: 16),
+              child: ElevatedButton(
+                onPressed: () async {
+                  print("click");
+                  openGoogleMaps(48.8566, 2.3522);
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(600, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                child: const Text("Maps",
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                    )),
               ),
             ),
             Divider(height: 0.5, color: Colors.grey[300]),

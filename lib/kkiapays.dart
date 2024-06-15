@@ -100,7 +100,7 @@ Future<void> sendPaymentData(String transactionId, BuildContext context) async {
   final kkiapay = KKiaPay(
   amount: 100, // Montant que l'utilisateur veut payer
   countries: ["BJ"], // Pays supportés (uniquement le Bénin)
-  phone: "51243660", // Numéro de téléphone de l'utilisateur
+  phone: "22951243660", // Numéro de téléphone de l'utilisateur
   name: "espérance", // Nom du payeur (utilisateur)
   email: "agbodjogbeesperance@mail.com", // Adresse e-mail du payeur (utilisateur)
   reason: 'achat', // Raison du paiement (achat)
@@ -108,8 +108,8 @@ Future<void> sendPaymentData(String transactionId, BuildContext context) async {
   sandbox: true, // Utilisation de l'environnement de test (pour effectuer des tests sans traiter de vraies transactions)
   apikey: 'fca1c44d658ce42f7a700753cdaa89f42d575998', // Clé API publique pour l'authentification
   callback: successCallback, // Fonction de rappel pour gérer la réponse du paiement
-  theme: '#2ba359', // Thème de l'interface de paiement (peut être personnalisé selon les besoins)
-  partnerId: '665b1bfe692cdc08d0150350', // ID du partenaire (votre identifiant KKiaPay)
+  //theme: '#2ba359', // Thème de l'interface de paiement (peut être personnalisé selon les besoins)
+  //partnerId: '665b1bfe692cdc08d0150350', // ID du partenaire (votre identifiant KKiaPay)
   paymentMethods: ["momo", "card"], // Méthodes de paiement supportées (par exemple, mobile money et carte bancaire)
 );
 

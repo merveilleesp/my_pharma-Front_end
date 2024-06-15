@@ -194,17 +194,6 @@ class _MedicamentsState extends State<Medicaments> {
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
-              /*ListTile(
-                        title: const Text('Voir Panier'),
-                        leading: const Icon(Icons.shopping_cart),
-                        onTap: () {
-                          // Passer le panier à la page du panier
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PanierPage(panier: panier)),
-                          );
-                        },
-                      ),*/
               ListTile(
                 title: const Text('Mes Commandes'),
                 leading: const Icon(Icons.shopping_basket),
@@ -223,13 +212,6 @@ class _MedicamentsState extends State<Medicaments> {
                     context,
                     MaterialPageRoute(builder: (context) => Favoris()),
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Suggérer un Produit'),
-                leading: const Icon(Icons.lightbulb),
-                onTap: () {
-                  // Action à effectuer lorsque l'option Suggérer un Produit est sélectionnée
                 },
               ),
               ListTile(

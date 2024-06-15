@@ -8,7 +8,6 @@ import 'package:my_pharma/code.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/verification.dart';
 import 'package:http/http.dart' as http;
-import 'package:twilio/twilio.dart';
 
 
 class Inscription extends StatefulWidget {
@@ -239,7 +238,11 @@ class _InscriptionState extends State<Inscription> {
                                               ? Icons.visibility
                                               : Icons.visibility_off,
                                         ),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          setState(() {
+                                            _ismotDePasseVisible = !_ismotDePasseVisible; // Inversion de l'état
+                                          });
+                                        },
                                       ),
                                     ),
                                   ),
@@ -264,7 +267,11 @@ class _InscriptionState extends State<Inscription> {
                                               ? Icons.visibility
                                               : Icons.visibility_off,
                                         ),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          setState(() {
+                                            _ismotDePasseVisible = !_ismotDePasseVisible; // Inversion de l'état
+                                          });
+                                        },
                                       ),
                                     ),
                                   ),

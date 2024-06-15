@@ -79,131 +79,141 @@ class _ConnexionState extends State<Connexion> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: LayoutBuilder(
+    return Scaffold(
+        body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          Flexible(
-              child: Align(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset('assets/bg_connect.png',
-                          width: constraints.maxWidth, fit: BoxFit.contain),
-                      const Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            "Connectez vous ",
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
-                              //color: colo,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              const Text("E-mail"),
-                              TextField(
-                                controller: email,
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
-                                style: const TextStyle(),
-                              ),
-                              const SizedBox(height: 16.0),
-                              const Text(
-                                "Mot de passe",
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Flexible(
+                  child: Align(
+                    child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.asset('assets/bg_connect.png',
+                                width: constraints.maxWidth, fit: BoxFit.contain),
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                "Connectez vous ",
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 25,
                                   fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.bold,
+                                  //color: colo,
                                 ),
                               ),
-                              TextField(
-                                controller: motDePasse,
-                                obscureText: !_ismotDePasseVisible,
-                                decoration: InputDecoration(
-                                  border: const OutlineInputBorder(
-                                      borderSide:
-                                           BorderSide(color: Colors.red, width: 2.0)),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _ismotDePasseVisible
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
-                                    ),
-                                    onPressed: () {},
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  const Text("E-mail"),
+                                  TextField(
+                                    controller: email,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(
+                                            borderSide:
+                                            BorderSide(color: Colors.red, width: 2.0))),
+                                    style: const TextStyle(),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 24.0),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  if (validerFormulaire()) { // Ajoutez cette condition pour vérifier les champs
-                                    print("click");
-                                    await seConnecter();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(600, 50),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
-                                child: const Text("Se connecter",
+                                  const SizedBox(height: 16.0),
+                                  const Text(
+                                    "Mot de passe",
                                     style: TextStyle(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ),
-                              const SizedBox(height: 16),
-                              Container(
-                                alignment: Alignment.center,
-                                child: const Text("Ou"),
-                              ),
-                              const SizedBox(height: 16),
-                              Container(
-                                alignment: Alignment.center,
-                                child: RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    text: 'Vous n\'avez pas de compte? ',
-                                    style: DefaultTextStyle.of(context).style,
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text: 'Inscrivez-vous',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration.underline,
-                                          decorationThickness: 6.0,
-                                          decorationColor: Color(0xFF009688),
-                                        ),
-                                          recognizer: TapGestureRecognizer()
-                                          ..onTap = () {
-                                          Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => Inscription()),
-                                          );
-                                          },
-                                      ),
-                                    ],
+                                      fontSize: 14,
+                                      fontFamily: 'Poppins',
+                                    ),
                                   ),
-                                ),
+                                  TextField(
+                                    controller: motDePasse,
+                                    obscureText: !_ismotDePasseVisible, // Utilisation de l'état _ismotDePasseVisible
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red, width: 2.0)
+                                      ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _ismotDePasseVisible
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _ismotDePasseVisible = !_ismotDePasseVisible; // Inversion de l'état
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24.0),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      if (validerFormulaire()) { // Ajoutez cette condition pour vérifier les champs
+                                        print("click");
+                                        await seConnecter();
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      minimumSize: const Size(600, 50),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                    ),
+                                    child: const Text("Se connecter",
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.bold,
+                                        )),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: const Text("Ou"),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: RichText(
+                                      textAlign: TextAlign.center,
+                                      text: TextSpan(
+                                        text: 'Vous n\'avez pas de compte? ',
+                                        style: DefaultTextStyle.of(context).style,
+                                        children: <TextSpan>[
+                                          TextSpan(
+                                            text: 'Inscrivez-vous',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: TextDecoration.underline,
+                                              decorationThickness: 6.0,
+                                              decorationColor: Color(0xFF009688),
+                                            ),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => Inscription()),
+                                                );
+                                              },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ))),
-                  ],
-                );
-              }));
+                            ),
+                          ],
+                        )
+                    ),
+                  )
+              ),
+            ],
+           );
+        })
+    );
             }
           }

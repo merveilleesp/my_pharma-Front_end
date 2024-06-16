@@ -11,6 +11,7 @@ import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/detailspharma.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
+import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/profil.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
 
 class Pharmacie {
@@ -320,7 +321,11 @@ class _PharmaciesState extends State<Pharmacies> {
                 leading: const Icon(Icons.favorite),
                 title: const Text('Favoris'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => Favoris()));
+                  Favoris favoris = Favoris();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
+                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
               ListTile(

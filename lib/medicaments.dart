@@ -17,6 +17,21 @@ import 'panier.dart';
 
 
 
+class Favoris {
+  List<Medicament> favorisList = [];
+
+  void toggleFavorite(Medicament medicament) {
+    if (favorisList.contains(medicament)) {
+      favorisList.remove(medicament);
+    } else {
+      favorisList.add(medicament);
+    }
+  }
+
+  bool isFavorite(Medicament medicament) {
+    return favorisList.contains(medicament);
+  }
+}
 
 
 
@@ -25,41 +40,37 @@ class Medicaments extends StatefulWidget {
   _MedicamentsState createState() => _MedicamentsState();
 }
 
-Future<dynamic> getMedicaments() async {
+Future<List<Medicament>> getMedicaments() async {
   var url = Uri.http('192.168.1.195:8080', 'users/recupdonneesme.php');
-  url.toString();
   try {
     var response = await http.post(url, body: {});
     print('msg: ${response.statusCode}');
     if (response.statusCode == 200) {
-      // Si la réponse est correcte, parsez le contenu de la réponse en JSON
       final data = json.decode(response.body);
-      print(data);
-      return data;
+      List<Medicament> medicaments = List<Medicament>.from(data.map((item) => Medicament.fromJson(item)));
+      return medicaments;
     } else {
-      // Si la réponse est incorrecte, affichez l'erreur
       print(response.statusCode);
       Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
-      return null;
+      return [];
     }
   } catch (e) {
     Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
     Fluttertoast.showToast(msg: "Vérifiez votre connexion");
     print(e);
-    return null;
+    return [];
   }
 }
 
 class _MedicamentsState extends State<Medicaments> {
-  bool toggleValue = false;
   bool isFavorite = false;
-  List<bool> favorites = List.generate(20, (_) => false);
   List<Medicament> medicaments = [];
   List<Medicament> medicamentsInitials = []; // Copie de la liste initiale des pharmacies
   dynamic stockMedicaments;
   dynamic dataMedicaments;
   bool medocIsReady = false;
   List<MedicamentCartItem> panier = []; // Ajout du panier
+
 
   void loadMedoc() {
     getMedicaments().then((value) {
@@ -71,21 +82,6 @@ class _MedicamentsState extends State<Medicaments> {
       });
     });
   }
-
-  toggleButton() {
-    setState(() {
-      toggleValue = !toggleValue;
-    });
-  }
-
-  void toggleFavorite(int index) {
-    setState(() {
-      favorites[index] = !favorites[index];
-    });
-  }
-
-
-
 
   void filterMedicaments(String query) {
     print(query);
@@ -124,6 +120,7 @@ class _MedicamentsState extends State<Medicaments> {
     medicaments = genererDonneesMedicaments();
     medicamentsInitials = List.from(medicaments);
   }
+  Favoris favoris = Favoris();
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +207,7 @@ class _MedicamentsState extends State<Medicaments> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Favoris()),
+                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),
@@ -283,87 +280,65 @@ class _MedicamentsState extends State<Medicaments> {
                   ),
                   Expanded(
                     child: stockMedicaments != null
-                        ? GridView.builder(
+                        ? ListView.builder(
                       itemCount: stockMedicaments.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10.0,
-                        mainAxisSpacing: 10.0,
-                      ),
                       itemBuilder: (BuildContext context, int index) {
-                        final medicament = stockMedicaments[index];
-                        return Container(
-                          margin: EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                '${medicament['designation']}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
+                        final Medicament medicament = stockMedicaments[index];
+                        return Card(
+                          // ...
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  '${medicament.nom}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                  ),
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                '${medicament['prix']} Fcfa',
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  IconButton(
-                                    icon: Icon(
-                                      favorites[index]
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: favorites[index]
-                                          ? Colors.red
-                                          : Colors.grey,
+                                SizedBox(height: 5.0),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      '${medicament.prix} Fcfa',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0,
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      toggleFavorite(index);
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.shopping_cart, color: Colors.teal,),
-                                    onPressed: () {
-                                      /*addToCart(
-                                          context,
-                                          Medicament(
-                                            id: stockSearch[index]["id"] ?? 0,
-                                            nom: stockSearch[index]["medicament"],
-                                            prix: double.parse(stockSearch[index]['prix'].toString()),
-                                          ),
-                                          stockSearch[index]["pharmacie"]
-                                      );*/
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    SizedBox(width: 100),
+                                    IconButton(
+                                      icon: Icon(
+                                        favoris.isFavorite(medicament) ? Icons.favorite : Icons.favorite_border,
+                                        color: Colors.teal,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          favoris.toggleFavorite(medicament);
+                                        });
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.shopping_cart, color: Colors.teal),
+                                      onPressed: () {
+                                        // Action lorsque l'utilisateur appuie sur l'icône du panier
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 5.0),
+                              ],
+                            ),
                           ),
                         );
                       },
                     )
                         : Center(
-                      child: CircularProgressIndicator(),
+                            child: CircularProgressIndicator(),
                     ),
                   ),
                 ],

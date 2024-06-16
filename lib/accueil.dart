@@ -43,6 +43,31 @@ Future<dynamic> getClasse() async {
   }
 }
 
+Future<List<String>> getMedicamentsByClasse(String classe) async {
+  var url = Uri.parse('http://192.168.1.195:8080/users/listeclassethera.php?classe_therapeutique=$classe');
+  try {
+    var response = await http.get(url);
+    print('Réponse du serveur: ${response.body}');
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      if (data is List) {
+        return data.map<String>((item) => item['nom_medicament'] ?? 'Nom manquant').toList();
+      } else {
+        Fluttertoast.showToast(msg: "Erreur: ${data['error']}");
+        return [];
+      }
+    } else {
+      Fluttertoast.showToast(msg: "Erreur du serveur: ${response.statusCode}");
+      return [];
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Erreur de connexion: $e");
+    print('Erreur de connexion: $e');
+    return [];
+  }
+}
+
+
 class _AccueilState extends State<Accueil> {
 
   dynamic stockclasse;
@@ -160,6 +185,7 @@ class _AccueilState extends State<Accueil> {
       );
     }
   }
+  Favoris favoris = Favoris();
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +279,7 @@ class _AccueilState extends State<Accueil> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Favoris()),
+                            MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
                           );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                         },
                       ),
@@ -317,9 +343,9 @@ class _AccueilState extends State<Accueil> {
                          child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            if (_currentPosition != null)
+                            /*if (_currentPosition != null)
                               Text('Latitude: ${_currentPosition?.latitude}, Longitude: ${_currentPosition?.longitude}'),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 10),*/
                             //input/border de recherche
                              Padding(
                               padding: EdgeInsets.all(16.0),
@@ -383,7 +409,30 @@ class _AccueilState extends State<Accueil> {
                                       (index) => Column(
                                     children: [
                                       TextButton(
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          // Récupérer les médicaments pour la classe thérapeutique cliquée
+                                          List<String> medicaments = await getMedicamentsByClasse(stockclasse[index][0]);
+                                          // Afficher les médicaments dans un nouveau widget ou une boîte de dialogue
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text('Médicaments de la classe ${stockclasse[index][0]}'),
+                                              content: Container(
+                                                width: double.maxFinite,
+                                                child: ListView(
+                                                  shrinkWrap: true,
+                                                  children: medicaments.map((medicament) => ListTile(title: Text(medicament))).toList(),
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  child: Text('Fermer'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                         style: ButtonStyle(
                                           padding: MaterialStateProperty.all(EdgeInsets.zero),
                                           shape: MaterialStateProperty.all(const CircleBorder()),

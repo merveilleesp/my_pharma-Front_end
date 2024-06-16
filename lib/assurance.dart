@@ -4,6 +4,7 @@ import 'package:my_pharma/kkiapays.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
+import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/profil.dart';
 
 class Assurance extends StatefulWidget {
@@ -13,6 +14,7 @@ class Assurance extends StatefulWidget {
 
 class _AssuranceState extends State<Assurance> {
   List<String> assurances = [];
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +95,10 @@ class _AssuranceState extends State<Assurance> {
                 title: const Text('Mes Favoris'),
                 leading: const Icon(Icons.favorite),
                 onTap: () {
+                  Favoris favoris = Favoris();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Favoris()),
+                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),

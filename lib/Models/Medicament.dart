@@ -10,4 +10,13 @@ class Medicament {
     required this.prix,
     this.isFavorite = false,
   });
+
+  factory Medicament.fromJson(Map<String, dynamic> json) {
+    return Medicament(
+      id: json['id'],
+      nom: json['designation'],
+      prix: double.parse(json['prix']),
+      isFavorite: false, // Vous pouvez initialiser à partir de vos données si nécessaire
+    );
+  }
 }

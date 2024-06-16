@@ -6,6 +6,7 @@ import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_pharma/listecom.dart';
+import 'package:my_pharma/medicaments.dart';
 
 class Profil extends StatelessWidget {
   @override
@@ -91,9 +92,10 @@ class Profil extends StatelessWidget {
                 title: const Text('Mes Favoris'),
                 leading: const Icon(Icons.favorite),
                 onTap: () {
+                  Favoris favoris = Favoris();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Favoris()),
+                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
                   );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
                 },
               ),

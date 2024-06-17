@@ -20,7 +20,8 @@ class Pharmacie {
   String localite;
   double latitude; // Latitude de la pharmacie
   double longitude; // Longitude de la pharmacie
-  String distance; // Distance de l'utilisateur à la pharmacie
+  String distance;// Distance de l'utilisateur à la pharmacie
+  String contacts;
 
   Pharmacie({
     required this.nom,
@@ -28,7 +29,8 @@ class Pharmacie {
     required this.localite,
     required this.latitude,
     required this.longitude,
-    required this.distance, // Distance initiale
+    required this.distance,
+    required this.contacts, // Distance initiale
   });
 
 // Méthode pour changer l'état de garde de manière aléatoire
@@ -124,7 +126,8 @@ class _PharmaciesState extends State<Pharmacies> {
         localite: item['localite'],
         latitude: double.parse(item['latitude']),
         longitude: double.parse(item['longitude']),
-        distance: 'Calculating...', // Initialisation
+        distance: 'Calculating...',
+        contacts: item['contacts'] ?? 'Unknown',// Initialisation
       );
     }).toList();
   }
@@ -318,6 +321,13 @@ class _PharmaciesState extends State<Pharmacies> {
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.healing),
+                title: const Text('Medicaments'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Medicaments()));
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.favorite),
                 title: const Text('Favoris'),
                 onTap: () {
@@ -347,6 +357,20 @@ class _PharmaciesState extends State<Pharmacies> {
                 title: const Text('Profil'),
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => Profil()));
+                },
+              ),
+              ListTile(
+                title: const Text('Inviter un Ami'),
+                leading: const Icon(Icons.person_add),
+                onTap: () {
+                  // Action à effectuer lorsque l'option Inviter un Ami est sélectionnée
+                },
+              ),
+              ListTile(
+                title: const Text('Nous Contacter'),
+                leading: const Icon(Icons.contact_mail),
+                onTap: () {
+                  // Action à effectuer lorsque l'option Nous Contacter est sélectionnée
                 },
               ),
               ListTile(
@@ -454,25 +478,36 @@ class _PharmaciesState extends State<Pharmacies> {
                 itemCount: pharmaciesAffichees.length,
                 itemBuilder: (context, index) {
                   final pharmacie = pharmaciesAffichees[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(pharmacie.nom),
-                      subtitle: Text(pharmacie.distance),
-                      trailing: Transform.rotate(
-                        angle: -pi / 4, // Angle de rotation, ajustez selon votre préférence
-                        child: Icon(
-                          pharmacie.estDeGarde ? Icons.nightlight_round : null,
-                          color: pharmacie.estDeGarde ? Colors.green : Colors.grey,
+                  return GestureDetector(
+                    onTap: () {
+                      // Action à effectuer lorsqu'une pharmacie est sélectionnée
+                      // Vous pouvez naviguer vers une autre page ou exécuter une autre action ici
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailsPharmacies(
+                            id: index,
+                            nom: pharmacie.nom,
+                            latitude: pharmacie.latitude,
+                            longitude: pharmacie.longitude,
+                            contacts: pharmacie.contacts ?? 'Unknown',
+                          ),
+                        ),
+                      );
+
+                    },
+                    child: Card(
+                      child: ListTile(
+                        title: Text(pharmacie.nom),
+                        subtitle: Text(pharmacie.distance),
+                        trailing: Transform.rotate(
+                          angle: -pi / 4,
+                          child: Icon(
+                            pharmacie.estDeGarde ? Icons.nightlight_round : null,
+                            color: pharmacie.estDeGarde ? Colors.green : Colors.grey,
+                          ),
                         ),
                       ),
-                      onTap: () {
-                        /*Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailsPharmacies(id: id),
-                          ),
-                        );*/
-                      },
                     ),
                   );
                 },

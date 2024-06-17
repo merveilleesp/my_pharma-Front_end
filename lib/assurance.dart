@@ -5,6 +5,7 @@ import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
+import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 
 class Assurance extends StatefulWidget {
@@ -15,7 +16,7 @@ class Assurance extends StatefulWidget {
 class _AssuranceState extends State<Assurance> {
   List<String> assurances = [];
 
-
+  Favoris favoris = Favoris();
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -42,7 +43,7 @@ class _AssuranceState extends State<Assurance> {
         ),
         drawer: Drawer(
           child: ListView(
-          padding: EdgeInsets.zero,
+            padding: EdgeInsets.zero,
             children: <Widget>[
               const UserAccountsDrawerHeader(
                 accountName: Text('Nom Utilisateur'),
@@ -55,47 +56,30 @@ class _AssuranceState extends State<Assurance> {
                 ),
               ),
               ListTile(
-                title: const Text('Accueil'),
                 leading: const Icon(Icons.home),
+                title: const Text('Accueil'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Accueil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Accueil()));
                 },
               ),
               ListTile(
-                title: const Text('Mon Profil'),
-                leading: const Icon(Icons.person),
+                leading: const Icon(Icons.local_pharmacy),
+                title: const Text('Pharmacies'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Profil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Pharmacies()));
                 },
               ),
               ListTile(
-                title: const Text('Assurances'), // Ajout de l'élément "Assurances"
-                leading: const Icon(Icons.security), // Icône pour "Assurances"
+                leading: const Icon(Icons.healing),
+                title: const Text('Medicaments'),
                 onTap: () {
-                  // Action à effectuer lorsque l'option Assurances est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Medicaments()));
                 },
               ),
               ListTile(
-                title: const Text('Mes Commandes'),
-                leading: const Icon(Icons.shopping_cart),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Mes Favoris'),
                 leading: const Icon(Icons.favorite),
+                title: const Text('Favoris'),
                 onTap: () {
-                  Favoris favoris = Favoris();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
@@ -103,10 +87,24 @@ class _AssuranceState extends State<Assurance> {
                 },
               ),
               ListTile(
-                title: const Text('Suggérer un Produit'),
-                leading: const Icon(Icons.lightbulb),
+                leading: const Icon(Icons.list),
+                title: const Text('Liste de courses'),
                 onTap: () {
-                  // Action à effectuer lorsque l'option Suggérer un Produit est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ListeCommandesPage()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.business),
+                title: const Text('Assurances'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Assurance()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle),
+                title: const Text('Profil'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Profil()));
                 },
               ),
               ListTile(
@@ -124,27 +122,10 @@ class _AssuranceState extends State<Assurance> {
                 },
               ),
               ListTile(
-                title: const Text('Mentions Légales'),
-                leading: const Icon(Icons.gavel),
-                onTap: () {
-                  // Action à effectuer lorsque l'option Mentions Légales est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('A Propos de Nous'),
-                leading: const Icon(Icons.info),
-                onTap: () {
-                  // Action à effectuer lorsque l'option A Propos de Nous est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Se Déconnecter'),
                 leading: const Icon(Icons.logout),
+                title: const Text('Déconnexion'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Connexion()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Connexion()));
                 },
               ),
             ],

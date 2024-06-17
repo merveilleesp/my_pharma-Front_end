@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_pharma/Models/PharmacieCard.dart';
 import 'package:my_pharma/detailspharma.dart';
-import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/panier.dart';
+
 
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
+import 'Models/PharmacieCard.dart';
 
 class SearchPage extends StatefulWidget {
   final String nom_medoc;
@@ -27,12 +27,10 @@ Future<dynamic> getPharm(query) async {
     var response = await http.post(url, body: {'query': query});
     print('msg: ${response.statusCode}');
     if (response.statusCode == 200) {
-      // Si la réponse est correcte, parsez le contenu de la réponse en JSON
       final data = json.decode(response.body);
       print(data);
       return data;
     } else {
-      // Si la réponse est incorrecte, affichez l'erreur
       print(response.statusCode);
       Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
       return null;
@@ -45,7 +43,6 @@ Future<dynamic> getPharm(query) async {
   }
 }
 
-
 class _SearchPageState extends State<SearchPage> {
   List<PharmacieCard> panier = [];
   dynamic stockSearch;
@@ -54,31 +51,29 @@ class _SearchPageState extends State<SearchPage> {
   void addToCart(BuildContext context, Medicament medicament, String pharmacie) {
     final existingCartItem = panier.firstWhere(
           (item) => item.pharmacieName == pharmacie,
-      orElse: () => PharmacieCard(pharmacieName: "", medicamentCard: MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0))),
+      orElse: () => PharmacieCard(pharmacieName: "", medicamentCard: MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''))),
     );
     final existingMedicamentCard = existingCartItem.medicaments.firstWhere(
-          (item) => item.medicament.nom == medicament.nom,
-      orElse: () => MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0))
+            (item) => item.medicament.nom == medicament.nom,
+        orElse: () => MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''))
     );
     if (existingCartItem.pharmacieName.isNotEmpty) {
-        if(existingMedicamentCard.medicament.nom.isNotEmpty){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${medicament.nom} est déjà dans le panier de la ${pharmacie}.'),
-            ),
-          );
-        } else {
-          setState(() {
-            existingCartItem.medicaments.add(MedicamentCartItem(medicament: medicament));
-
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${medicament.nom} a été ajouté au panier.'),
-            ),
-          );
-        }
-
+      if (existingMedicamentCard.medicament.nom.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${medicament.nom} est déjà dans le panier de la ${pharmacie}.'),
+          ),
+        );
+      } else {
+        setState(() {
+          existingCartItem.medicaments.add(MedicamentCartItem(medicament: medicament));
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${medicament.nom} a été ajouté au panier.'),
+          ),
+        );
+      }
     } else {
       setState(() {
         PharmacieCard tmp = PharmacieCard(pharmacieName: pharmacie, medicamentCard: MedicamentCartItem(medicament: medicament));
@@ -118,7 +113,7 @@ class _SearchPageState extends State<SearchPage> {
     if (_controller.text.isNotEmpty) {
       setState(() {
         title = _controller.text;
-        stockSearch = null; // Reset previous results
+        stockSearch = null;
       });
       getPharm(_controller.text).then((value) {
         setState(() {
@@ -135,7 +130,10 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Colors.teal,
+      ),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +181,11 @@ class _SearchPageState extends State<SearchPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => DetailsPharmacies(
-                              id: stockSearch[index]["id_pharmacie"],
+                              id: stockSearch[index]["id_pharmacie"] ?? 0,
+                              nom: stockSearch[index]["nom"] ?? '',
+                              latitude: stockSearch[index]["latitude"] ?? '',
+                              longitude: stockSearch[index]["longitude"] ?? '',
+                              contacts: stockSearch[index]["contacts"] ?? '',
                             ),
                           ),
                         );
@@ -207,7 +209,7 @@ class _SearchPageState extends State<SearchPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  stockSearch[index]["pharmacie"],
+                                  stockSearch[index]["pharmacie"] ?? '',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.teal,
@@ -231,10 +233,12 @@ class _SearchPageState extends State<SearchPage> {
                                   context,
                                   Medicament(
                                     id: stockSearch[index]["id"] ?? 0,
-                                    nom: stockSearch[index]["medicament"],
-                                    prix: double.parse(stockSearch[index]['prix'].toString()),
+                                    nom: stockSearch[index]["medicament"] ?? '',
+                                    presentation: stockSearch[index]["presentation"] ?? '',
+                                    dosage: stockSearch[index]["dosage"] ?? '',
+                                    prix: double.parse(stockSearch[index]['prix']?.toString() ?? '0'),
                                   ),
-                                  stockSearch[index]["pharmacie"]
+                                  stockSearch[index]["pharmacie"] ?? ''
                               );
                             },
                           ),

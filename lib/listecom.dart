@@ -3,6 +3,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:my_pharma/accueil.dart';
+import 'package:my_pharma/assurance.dart';
+import 'package:my_pharma/connexion.dart';
+import 'package:my_pharma/favoris.dart';
+import 'package:my_pharma/medicaments.dart';
+import 'package:my_pharma/pharmacies.dart';
+import 'package:my_pharma/profil.dart';
 import 'Models/CommandeManager.dart';
 import 'commande.dart'; // Importez CommandeManager
 
@@ -43,6 +50,97 @@ class ListeCommandesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Liste des Commandes'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const UserAccountsDrawerHeader(
+              accountName: Text('Nom Utilisateur'),
+              accountEmail: Text('email@example.com'),
+              currentAccountPicture: CircleAvatar(
+                child: Icon(Icons.person),
+              ),
+              decoration: BoxDecoration(
+                color: Color(0xFF009688),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Accueil'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Accueil()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.local_pharmacy),
+              title: const Text('Pharmacies'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Pharmacies()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.healing),
+              title: const Text('Medicaments'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Medicaments()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Favoris'),
+              onTap: () {
+                Favoris favoris = Favoris();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
+                );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list),
+              title: const Text('Liste de courses'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ListeCommandesPage()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.business),
+              title: const Text('Assurances'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Assurance()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Profil'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Profil()));
+              },
+            ),
+            ListTile(
+              title: const Text('Inviter un Ami'),
+              leading: const Icon(Icons.person_add),
+              onTap: () {
+                // Action à effectuer lorsque l'option Inviter un Ami est sélectionnée
+              },
+            ),
+            ListTile(
+              title: const Text('Nous Contacter'),
+              leading: const Icon(Icons.contact_mail),
+              onTap: () {
+                // Action à effectuer lorsque l'option Nous Contacter est sélectionnée
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Déconnexion'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Connexion()));
+              },
+            ),
+          ],
+        ),
       ),
       body: commandes.isEmpty
           ? Center(

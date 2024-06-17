@@ -9,37 +9,37 @@ import 'package:my_pharma/code.dart';
 import 'package:my_pharma/connexion.dart';
 
 class Verification extends StatefulWidget {
+
+  final String email;
+
+  Verification({required this.email});
+
   @override
   _VerificationState createState() => _VerificationState();
 }
 
 class _VerificationState extends State<Verification> {
-  List<TextEditingController> _controllers = List.generate(
-    4,
-        (index) => TextEditingController(),
-  );
-
-  late TextEditingController email;
   late TextEditingController confirmation_code;
   late String message;
+
+  final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
 
   @override
   void initState() {
     super.initState();
-    email = TextEditingController();
     confirmation_code = TextEditingController();
     message = "";
+    for (int i = 0; i < 4; i++) {
+      _controllers[i].addListener(() {
+        if (_controllers[i].text.length == 1 && i < 3) {
+          FocusScope.of(context).requestFocus(_focusNodes[i + 1]);
+        } else if (_controllers[i].text.isEmpty && i > 0) {
+          FocusScope.of(context).requestFocus(_focusNodes[i - 1]);
+        }
+      });
+    }
   }
-
-  /*String genererCode() {
-    final random = Random();
-    final code = sha1
-        .convert(utf8.encode(
-        DateTime.now().toString() + random.nextInt(1000000).toString()))
-        .toString()
-        .substring(0, 4);
-    return code;
-  }*/
 
   String genererCode() {
     final random = Random();
@@ -72,12 +72,11 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-
-   Future<void> validerInscription() async {
+  Future<void> validerInscription() async {
     Uri url = Uri.parse('http://192.168.1.195:5050/users/verification.php');
     try {
       http.Response response = await http.post(url, body: {
-        'email': email.text,
+        'email': widget.email,
         'confirmation_code': _controllers.map((controller) => controller.text).join(),
       });
 
@@ -108,7 +107,45 @@ class _VerificationState extends State<Verification> {
     }
   }
 
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var focusNode in _focusNodes) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
 
+  Widget buildCodeInputField(TextEditingController controller, FocusNode focusNode, int index) {
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        maxLength: 1,
+        decoration: InputDecoration(
+          counterText: "",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        onChanged: (value) {
+          if (value.length == 1 && index < 3) {
+            FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+          } else if (value.isEmpty && index > 0) {
+            FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
+          }
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,18 +172,20 @@ class _VerificationState extends State<Verification> {
                         color: Colors.white),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Nous avons envoyé un code à 4 chiffres au  51****60',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w200,
-                          color: Colors.white)),
+                  Text(
+                    'Nous avons envoyé un code à 4 chiffres à ${widget.email}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w200,
+                        color: Colors.white),
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: List.generate(
                       4,
-                          (index) => buildCodeInputField(_controllers[index]),
+                          (index) => buildCodeInputField(_controllers[index], _focusNodes[index], index),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -168,7 +207,7 @@ class _VerificationState extends State<Verification> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      renvoyerCode('agbodjogbeesperance@gmail.com');
+                      renvoyerCode(widget.email);
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(300, 60),
@@ -190,27 +229,5 @@ class _VerificationState extends State<Verification> {
       ),
     );
   }
-
-  Widget buildCodeInputField(TextEditingController controller) {
-    return Container(
-      width: 50,
-      height: 50,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white, width: 3),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        maxLength: 1,
-        style: const TextStyle(fontSize: 20),
-        decoration: const InputDecoration(
-          counterText: '',
-          border: InputBorder.none,
-        ),
-      ),
-    );
-  }
 }
+

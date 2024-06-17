@@ -8,15 +8,24 @@ class DetailsPharmacies extends StatelessWidget {
   final String nomDocteur = "";
   final String localisation = "";
   final String assurances = "";
-  final String contacts = "";
+  final String contacts;
   final String heuresOuverture = "";
   final String moyensPaiements = "";
   final int id;
+  final double latitude; // Ajout des coordonnées géographiques
+  final double longitude;
+  final String nom;
+
 
   DetailsPharmacies({
     required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.nom,
+    required this.contacts,
   });
-  void openGoogleMaps(double latitude, double longitude) async {
+
+  void openGoogleMaps() async {
     String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
 
     if (await canLaunch(googleMapsUrl)) {
@@ -25,6 +34,7 @@ class DetailsPharmacies extends StatelessWidget {
       throw 'Could not open the map.';
     }
   }
+
 
 
   @override
@@ -60,6 +70,15 @@ class DetailsPharmacies extends StatelessWidget {
                   ),
                   SizedBox(height: 5),
                   Text(
+                      '$nom',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color :Colors.teal
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
                     'Dr. $id',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -89,7 +108,7 @@ class DetailsPharmacies extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   print("click");
-                  openGoogleMaps(48.8566, 2.3522);
+                  openGoogleMaps();
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(600, 50),

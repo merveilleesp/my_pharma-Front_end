@@ -20,7 +20,7 @@ sendMailInvitation(
     ..subject = 'code de confirmation'
   // ..text = 'This is the plain text.\nThis is line 2 of the text part.'
     ..html =
-        "<h1 style=\"color: #44a8fa;font-size: xxx-large; text-align:center\">Code de confirmation</h1> "
+        "<h1 style=\"color: #44a8fa;font-size: xxx-large; text-align:center\">Bienvenue sur notre application</h1> "
         "<p style=\"line-height: 2;text-align:center\">Entrez le code suivant pour finaliser votre authentification.. <br>  "
         " <span>Code de confirmation: </span> "
         "<span style=\"font-weight: bold;\">$confirmation_code</span><br>";

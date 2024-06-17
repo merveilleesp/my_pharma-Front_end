@@ -27,6 +27,8 @@ class _InscriptionState extends State<Inscription> {
   late bool _ismotDePasseVisible;
   late String message;
 
+  bool isProcessing = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,15 +42,6 @@ class _InscriptionState extends State<Inscription> {
     message = "";
   }
 
-  /*String genererCode() {
-    final random = Random();
-    final code = sha1
-        .convert(utf8.encode(
-        DateTime.now().toString() + random.nextInt(1000000).toString()))
-        .toString()
-        .substring(0, 4);
-    return code;
-  }*/
   String genererCode() {
     final random = Random();
     final String code = String.fromCharCodes(List.generate(4, (_) => random.nextInt(10) + 48));
@@ -97,12 +90,13 @@ class _InscriptionState extends State<Inscription> {
         if (response.statusCode == 200) {
           // Envoi de l'e-mail d'invitation avec le code de confirmation
           await sendMailInvitation(email.text, confirmationCode);
+          await Future.delayed(Duration(seconds: 3));
           print('Inscription réussie, e-mail envoyé avec succès');
           // Afficher un message de succès ou naviguer vers une autre page
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Verification()),
+                builder: (context) => Verification(email: email.text,)),
           );
         } else {
           dynamic jsonResponse = jsonDecode(response.body);
@@ -276,24 +270,34 @@ class _InscriptionState extends State<Inscription> {
                                     ),
                                   ),
                                   const SizedBox(height: 24.0),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      print("click");
-                                      await sInscrire();
-                                      //sendMailInvitation('agbodjogbeesperance@gmail.com', genererCode() );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      minimumSize: const Size(600, 50),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
+                                ElevatedButton(
+                                  onPressed: isProcessing
+                                      ? null
+                                      : () async {
+                                    setState(() {
+                                      isProcessing = true;
+                                    });
+                                    await sInscrire();
+                                    setState(() {
+                                      isProcessing = false;
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(600, 50),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
                                     ),
-                                    child: const Text("S'inscrire",
-                                        style: TextStyle(
-                                          fontSize: 19,
-                                          fontWeight: FontWeight.bold,
-                                        )),
                                   ),
+                                  child: isProcessing
+                                      ? CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  )
+                                      : const Text("S'inscrire",
+                                      style: TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                ),
                                   const SizedBox(height: 24.0),
                                   Container(
                                     alignment: Alignment.center,

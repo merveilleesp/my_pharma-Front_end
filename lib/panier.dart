@@ -115,6 +115,7 @@ class _PanierPageState extends State<PanierPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Panier'),
+        backgroundColor: Colors.teal,
       ),
       body: Column(
         children: [

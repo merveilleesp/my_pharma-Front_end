@@ -8,9 +8,8 @@ import 'package:my_pharma/kkiapays.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
-import 'package:my_pharma/parentwidget.dart';
+import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
-import 'package:my_pharma/search.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'panier.dart';
@@ -69,7 +68,8 @@ class _MedicamentsState extends State<Medicaments> {
   dynamic stockMedicaments;
   dynamic dataMedicaments;
   bool medocIsReady = false;
-  List<MedicamentCartItem> panier = []; // Ajout du panier
+  List<MedicamentCartItem> panier = [];
+  Favoris favoris = Favoris();// Ajout du panier
 
 
   void loadMedoc() {
@@ -109,6 +109,8 @@ class _MedicamentsState extends State<Medicaments> {
         id: index + 1,
         nom: 'designation ${index + 1}',
         prix: prix,
+        presentation: 'Présentation du médicament ${index + 1}',
+        dosage: 'Dosage du médicament ${index + 1}',
       );
     });
   }
@@ -120,7 +122,6 @@ class _MedicamentsState extends State<Medicaments> {
     medicaments = genererDonneesMedicaments();
     medicamentsInitials = List.from(medicaments);
   }
-  Favoris favoris = Favoris();
 
   @override
   Widget build(BuildContext context) {
@@ -161,54 +162,55 @@ class _MedicamentsState extends State<Medicaments> {
                 ),
               ),
               ListTile(
-                title: const Text('Accueil'),
                 leading: const Icon(Icons.home),
+                title: const Text('Accueil'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Accueil()),
-                  );
-                  // Action à effectuer lorsque l'option Accueil est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Accueil()));
                 },
               ),
               ListTile(
-                title: const Text('Mon Profil'),
-                leading: const Icon(Icons.person),
+                leading: const Icon(Icons.local_pharmacy),
+                title: const Text('Pharmacies'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Profil()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Pharmacies()));
                 },
               ),
               ListTile(
-                title: const Text('Assurances'), // Ajout de l'élément "Assurances"
-                leading: const Icon(Icons.security), // Icône pour "Assurances"
+                leading: const Icon(Icons.healing),
+                title: const Text('Medicaments'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Assurance()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Medicaments()));
                 },
               ),
               ListTile(
-                title: const Text('Mes Commandes'),
-                leading: const Icon(Icons.shopping_basket),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ListeCommandesPage()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Mes Favoris'),
                 leading: const Icon(Icons.favorite),
+                title: const Text('Favoris'),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                    MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris)),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.list),
+                title: const Text('Liste de courses'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ListeCommandesPage()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.business),
+                title: const Text('Assurances'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Assurance()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.account_circle),
+                title: const Text('Profil'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Profil()));
                 },
               ),
               ListTile(
@@ -226,27 +228,10 @@ class _MedicamentsState extends State<Medicaments> {
                 },
               ),
               ListTile(
-                title: const Text('Mentions Légales'),
-                leading: const Icon(Icons.gavel),
-                onTap: () {
-                  // Action à effectuer lorsque l'option Mentions Légales est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('A Propos de Nous'),
-                leading: const Icon(Icons.info),
-                onTap: () {
-                  // Action à effectuer lorsque l'option A Propos de Nous est sélectionnée
-                },
-              ),
-              ListTile(
-                title: const Text('Se Déconnecter'),
                 leading: const Icon(Icons.logout),
+                title: const Text('Déconnexion'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Connexion()),
-                  );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Connexion()));
                 },
               ),
             ],
@@ -296,6 +281,20 @@ class _MedicamentsState extends State<Medicaments> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18.0,
+                                  ),
+                                ),
+                                SizedBox(height: 5.0),
+                                Text(
+                                  'Présentation: ${medicament.presentation}',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                SizedBox(height: 5.0),
+                                Text(
+                                  'Dosage: ${medicament.dosage}',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
                                   ),
                                 ),
                                 SizedBox(height: 5.0),

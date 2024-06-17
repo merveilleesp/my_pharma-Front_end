@@ -66,6 +66,7 @@ class CommandePage extends StatelessWidget {
             Navigator.pop(context); // Retour à la page précédente (Panier)
           },
         ),
+        backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

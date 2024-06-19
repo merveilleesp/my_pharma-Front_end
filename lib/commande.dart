@@ -39,7 +39,7 @@ class CommandePage extends StatelessWidget {
 
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.195:8080/users/commande.php'),
+        Uri.parse('http://192.168.1.194:8080/users/commande.php'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(data),
       );
@@ -59,12 +59,13 @@ class CommandePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Détails de la Commande'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Retour à la page précédente (Panier)
-          },
+        title: Text('Details de la commande',
+          style: TextStyle(
+            color: Colors.white, // Texte en blanc
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Icône en blanc
         ),
         backgroundColor: Colors.teal,
       ),
@@ -135,19 +136,23 @@ class CommandePage extends StatelessWidget {
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                 validerCommande(idUtilisateur);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                primary: Colors.teal,
+            SizedBox(height: 10),
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () {
+                  validerCommande(idUtilisateur);
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 30),
+                  primary: Colors.teal,
+                ),
+                child: Text(
+                  'Valider ',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
-              child: Text(
-                'Valider ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
+            )
           ],
         ),
       ),

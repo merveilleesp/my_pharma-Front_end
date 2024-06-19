@@ -73,7 +73,7 @@ class Pharmacies extends StatefulWidget {
 }
 
 Future<dynamic> getPharmacies() async {
-  var url = Uri.http('192.168.1.195:8080', 'users/recupdonnees.php');
+  var url = Uri.http('192.168.1.194:8080', 'users/recupdonnees.php');
   try {
     var response = await http.post(url, body: {});
     print('msg: ${response.statusCode}');
@@ -104,6 +104,7 @@ class _PharmaciesState extends State<Pharmacies> {
   dynamic stockPharmacies;
   dynamic dataPharmacies;
   Position? _currentPosition;
+  Favoris favoris = Favoris();
 
   toggleButton() {
     setState(() {
@@ -331,7 +332,6 @@ class _PharmaciesState extends State<Pharmacies> {
                 leading: const Icon(Icons.favorite),
                 title: const Text('Favoris'),
                 onTap: () {
-                  Favoris favoris = Favoris();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),

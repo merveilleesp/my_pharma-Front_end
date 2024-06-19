@@ -114,7 +114,14 @@ class _PanierPageState extends State<PanierPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Panier'),
+        title: Text('Panier',
+          style: TextStyle(
+          color: Colors.white, // Texte en blanc
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Icône en blanc
+        ),
         backgroundColor: Colors.teal,
       ),
       body: Column(
@@ -164,7 +171,8 @@ class _PanierPageState extends State<PanierPage> {
                                           IconButton(
                                             icon: Icon(
                                               medoc.medicament.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                              color: medoc.medicament.isFavorite ? Colors.red : Colors.grey,
+                                              color: medoc.medicament.isFavorite ? Colors.teal : null,
+
                                             ),
                                             onPressed: () {
                                               setState(() {
@@ -173,7 +181,7 @@ class _PanierPageState extends State<PanierPage> {
                                             },
                                           ),
                                           IconButton(
-                                            icon: Icon(Icons.delete),
+                                            icon: Icon(Icons.delete,color: Colors.teal,),
                                             onPressed: () {
                                               removeMedicamentFromCart(index, indexMedoc);
                                             },
@@ -227,19 +235,27 @@ class _PanierPageState extends State<PanierPage> {
                           },
                         ),
                         SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: widget.panier.isEmpty
-                              ? null
-                              : () {
-                            showValidationOptions(context, item.medicaments, index, item.prixTotal());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 16.0),
-                            primary: Colors.teal,
-                          ),
-                          child: Text(
-                            'Valider ${item.prixTotal().toStringAsFixed(2)} Fcfa',
-                            style: TextStyle(fontSize: 16),
+                        Align(
+                          alignment: Alignment.center,
+                          //widthFactor: 5,// Aligner le bouton en bas à droite
+                          child: ElevatedButton(
+                            onPressed: widget.panier.isEmpty
+                                ? null
+                                : () {
+                              showValidationOptions(context, item.medicaments, index, item.prixTotal());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16.0,horizontal: 30),
+                              primary: Colors.teal,
+                            ),
+                            child: Text(
+                              'Valider', // Ajoutez ici "${item.prixTotal().toStringAsFixed(2)} Fcfa" si nécessaire
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white
+                              ),
+                            ),
                           ),
                         ),
                       ],

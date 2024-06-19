@@ -18,7 +18,21 @@ class FavorisPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Favoris'),
+        title: Text('Favoris',
+          style: TextStyle(
+          color: Colors.white, // Texte en blanc
+        ),),
+        backgroundColor: Colors.teal,
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Icône en blanc
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(20.0),
+            bottomRight: Radius.circular(20.0),
+          ),
+        ),
+        centerTitle: true,
       ),
       drawer: Drawer(
         child: ListView(

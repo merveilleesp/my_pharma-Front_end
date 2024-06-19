@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_pharma/resetPasswordScreen.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/inscription.dart';
 
@@ -41,7 +42,7 @@ class _ConnexionState extends State<Connexion> {
   }
 
   Future<void> seConnecter() async {
-    Uri url = Uri.parse('http://192.168.1.195:5050/users/connexion.php');
+    Uri url = Uri.parse('http://192.168.1.194:5050/users/connexion.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': email.text,
@@ -98,6 +99,7 @@ class _ConnexionState extends State<Connexion> {
                               child: Text(
                                 "Connectez vous ",
                                 style: TextStyle(
+                                  color: Colors.teal,
                                   fontSize: 25,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
@@ -113,10 +115,15 @@ class _ConnexionState extends State<Connexion> {
                                   const Text("E-mail"),
                                   TextField(
                                     controller: email,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: const InputDecoration(
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
+                                    ),
                                     style: const TextStyle(),
                                   ),
                                   const SizedBox(height: 16.0),
@@ -130,15 +137,17 @@ class _ConnexionState extends State<Connexion> {
                                   TextField(
                                     controller: motDePasse,
                                     obscureText: !_ismotDePasseVisible, // Utilisation de l'état _ismotDePasseVisible
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.red, width: 2.0)
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
                                       ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _ismotDePasseVisible
-                                              ? Icons.visibility
-                                              : Icons.visibility_off,
+                                          _ismotDePasseVisible ? Icons.visibility : Icons.visibility_off,
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -148,6 +157,27 @@ class _ConnexionState extends State<Connexion> {
                                       ),
                                     ),
                                   ),
+                                  /*const SizedBox(height: 24.0),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // Naviguer vers l'écran de réinitialisation du mot de passe
+                                        print("Mot de passe oublié tapped");
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => ResetPasswordScreen()),
+                                        );
+                                      },
+                                      child: Text(
+                                        "Mot de passe oublié ?",
+                                        style: TextStyle(
+                                          color: Colors.teal,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ),*/
                                   const SizedBox(height: 24.0),
                                   ElevatedButton(
                                     onPressed: () async {
@@ -161,9 +191,11 @@ class _ConnexionState extends State<Connexion> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10.0),
                                       ),
+                                      primary: Colors.teal,
                                     ),
                                     child: const Text("Se connecter",
                                         style: TextStyle(
+                                          color: Colors.white,
                                           fontSize: 19,
                                           fontWeight: FontWeight.bold,
                                         )),
@@ -188,8 +220,9 @@ class _ConnexionState extends State<Connexion> {
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold,
                                               decoration: TextDecoration.underline,
-                                              decorationThickness: 6.0,
+                                              decorationThickness: 4.0,
                                               decorationColor: Color(0xFF009688),
+                                              height: 2,
                                             ),
                                             recognizer: TapGestureRecognizer()
                                               ..onTap = () {
@@ -205,7 +238,7 @@ class _ConnexionState extends State<Connexion> {
                                   ),
                                 ],
                               ),
-                            ),
+                            )
                           ],
                         )
                     ),

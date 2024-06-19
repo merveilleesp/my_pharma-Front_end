@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/kkiapays.dart';
+import 'package:my_pharma/onboarding.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

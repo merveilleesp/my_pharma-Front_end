@@ -75,7 +75,7 @@ class _InscriptionState extends State<Inscription> {
         String confirmationCode = genererCode();
 
         // Insérer les données de l'utilisateur et le code de confirmation dans la base de données
-        Uri url = Uri.parse('http://192.168.1.195:5050/users/mypharma.php');
+        Uri url = Uri.parse('http://192.168.1.194:5050/users/mypharma.php');
         http.Response response = await http.post(url, body: {
           'nom': nom.text,
           'prenom': prenom.text,
@@ -136,6 +136,7 @@ class _InscriptionState extends State<Inscription> {
                               child: Text(
                                 "Inscrivez-vous sur",
                                 style: TextStyle(
+                                  color: Colors.teal,
                                   fontSize: 25,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
@@ -157,10 +158,15 @@ class _InscriptionState extends State<Inscription> {
                                   ),
                                   TextField(
                                     controller: nom,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: const InputDecoration(
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
+                                    ),
                                     style: const TextStyle(),
                                   ),
                                   const SizedBox(height: 16.0),
@@ -173,10 +179,15 @@ class _InscriptionState extends State<Inscription> {
                                   ),
                                   TextField(
                                     controller: prenom,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: const InputDecoration(
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
+                                    ),
                                     style: const TextStyle(),
                                   ),
                                   const SizedBox(height: 16.0),
@@ -189,10 +200,15 @@ class _InscriptionState extends State<Inscription> {
                                   ),
                                   TextField(
                                     controller: email,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: const InputDecoration(
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
+                                    ),
                                     style: const TextStyle(),
                                   ),
                                   const SizedBox(height: 16.0),
@@ -205,10 +221,15 @@ class _InscriptionState extends State<Inscription> {
                                   ),
                                   TextField(
                                     controller: telephone,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: const InputDecoration(
-                                        border: OutlineInputBorder(
-                                            borderSide:
-                                            BorderSide(color: Colors.red, width: 2.0))),
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
+                                    ),
                                     style: const TextStyle(),
                                   ),
                                   const SizedBox(height: 16.0),
@@ -222,15 +243,17 @@ class _InscriptionState extends State<Inscription> {
                                   TextField(
                                     controller: mot_de_passe,
                                     obscureText: !_ismotDePasseVisible,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(
-                                          borderSide:
-                                          BorderSide(color: Colors.red, width: 2.0)),
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _ismotDePasseVisible
-                                              ? Icons.visibility
-                                              : Icons.visibility_off,
+                                          _ismotDePasseVisible ? Icons.visibility : Icons.visibility_off,
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -251,15 +274,17 @@ class _InscriptionState extends State<Inscription> {
                                   TextField(
                                     controller: confirmation_mot_de_passe,
                                     obscureText: !_ismotDePasseVisible,
+                                    cursorColor: Colors.teal, // Couleur du curseur
                                     decoration: InputDecoration(
                                       border: const OutlineInputBorder(
-                                          borderSide:
-                                          BorderSide(color: Colors.red, width: 2.0)),
+                                        borderSide: BorderSide(color: Colors.red, width: 2.0),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.teal, width: 2.0), // Bordure teal quand le champ est focalisé
+                                      ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _ismotDePasseVisible
-                                              ? Icons.visibility
-                                              : Icons.visibility_off,
+                                          _ismotDePasseVisible ? Icons.visibility : Icons.visibility_off,
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -270,34 +295,36 @@ class _InscriptionState extends State<Inscription> {
                                     ),
                                   ),
                                   const SizedBox(height: 24.0),
-                                ElevatedButton(
-                                  onPressed: isProcessing
-                                      ? null
-                                      : () async {
-                                    setState(() {
-                                      isProcessing = true;
-                                    });
-                                    await sInscrire();
-                                    setState(() {
-                                      isProcessing = false;
-                                    });
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    minimumSize: const Size(600, 50),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
+                                  ElevatedButton(
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                      setState(() {
+                                        isProcessing = true;
+                                      });
+                                      await sInscrire();
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      minimumSize: const Size(600, 50),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      primary: Colors.teal,
                                     ),
+                                    child: isProcessing
+                                        ? CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    )
+                                        : const Text("S'inscrire",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.bold,
+                                        )),
                                   ),
-                                  child: isProcessing
-                                      ? CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  )
-                                      : const Text("S'inscrire",
-                                      style: TextStyle(
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.bold,
-                                      )),
-                                ),
                                   const SizedBox(height: 24.0),
                                   Container(
                                     alignment: Alignment.center,
@@ -324,9 +351,8 @@ class _InscriptionState extends State<Inscription> {
                                             recognizer: TapGestureRecognizer()
                                               ..onTap = () {
                                                 Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                    builder: (context) => Connexion()),
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => Connexion()),
                                                 );
                                               },
                                           ),
@@ -337,7 +363,7 @@ class _InscriptionState extends State<Inscription> {
                                   const SizedBox(height: 24.0),
                                 ],
                               ),
-                            ),
+                            )
                           ],
                         ),
                       ))),

@@ -22,7 +22,7 @@ class ListeCommandesPage extends StatelessWidget {
       try {
         // Envoi de la requête POST à l'API
         var response = await http.post(
-          Uri.parse('http://192.168.1.195:8080/users/connexion.php'),
+          Uri.parse('http://192.168.1.194:8080/users/connexion.php'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"email": email, "mot_de_passe": motDePasse}),
         );
@@ -150,32 +150,34 @@ class ListeCommandesPage extends StatelessWidget {
         itemCount: commandes.length,
         itemBuilder: (context, index) {
           final commande = commandes[index];
-          return ListTile(
-            title: Text('Commande #${commande.numero}'),
-            onTap: () async {
+          return Card (
+            child: ListTile(
+              title: Text('Commande #${commande.numero}'),
+              onTap: () async {
 
-              String email = 'email_utilisateur';
-              String motDePasse = 'mot_de_passe_utilisateur';
+                String email = 'email_utilisateur';
+                String motDePasse = 'mot_de_passe_utilisateur';
 
-              int? idUtilisateur = await getIdUtilisateurFromSource(email , motDePasse);
-              // Naviguer vers les détails de la commande si nécessaire
-            if (idUtilisateur != null) {
-            // Naviguer vers les détails de la commande si nécessaire
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                  builder: (context) => CommandePage(
-                  commande: commande,
-                  items: commande.items,
-                  idUtilisateur: idUtilisateur,
-                ),
-               ),
-             );
-            } else {
-                // Afficher un message d'erreur ou gérer la situation où l'ID de l'utilisateur est null
-                print('Erreur: Impossible de récupérer l\'ID de l\'utilisateur.');
+                int? idUtilisateur = await getIdUtilisateurFromSource(email , motDePasse);
+                // Naviguer vers les détails de la commande si nécessaire
+                if (idUtilisateur != null) {
+                  // Naviguer vers les détails de la commande si nécessaire
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CommandePage(
+                        commande: commande,
+                        items: commande.items,
+                        idUtilisateur: idUtilisateur,
+                      ),
+                    ),
+                  );
+                } else {
+                  // Afficher un message d'erreur ou gérer la situation où l'ID de l'utilisateur est null
+                  print('Erreur: Impossible de récupérer l\'ID de l\'utilisateur.');
                 }
               },
+            ),
           );
         },
       ),

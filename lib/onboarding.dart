@@ -145,7 +145,7 @@ class OnboardingPage extends StatelessWidget {
           top: 30, // Ajustez la position du bouton selon vos besoins
           right: 40,
           child: SizedBox(
-            width: 92,
+            width: 95,
             height: 37,
             child: ElevatedButton(
               onPressed: () {

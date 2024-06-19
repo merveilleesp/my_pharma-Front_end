@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
+import 'package:my_pharma/detailsmedocs.dart';
 import 'package:my_pharma/kkiapays.dart';
 import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/favoris.dart';
@@ -12,6 +13,7 @@ import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
+import 'detailspharma.dart';
 import 'panier.dart';
 
 
@@ -40,7 +42,7 @@ class Medicaments extends StatefulWidget {
 }
 
 Future<List<Medicament>> getMedicaments() async {
-  var url = Uri.http('192.168.1.195:8080', 'users/recupdonneesme.php');
+  var url = Uri.http('192.168.1.194:8080', 'users/recupdonneesme.php');
   try {
     var response = await http.post(url, body: {});
     print('msg: ${response.statusCode}');
@@ -88,8 +90,8 @@ class _MedicamentsState extends State<Medicaments> {
     query = query.toUpperCase();
     setState(() {
       if (query.isNotEmpty) {
-        stockMedicaments = dataMedicaments.where((item) {
-          if (item['designation'].contains(query)) {
+        stockMedicaments = dataMedicaments.where((medicament) {
+          if (medicament.nom.toUpperCase().contains(query)) {
             return true;
           } else {
             return false;
@@ -100,6 +102,8 @@ class _MedicamentsState extends State<Medicaments> {
       }
     });
   }
+
+
 
   List<Medicament> genererDonneesMedicaments() {
     return List.generate(350, (index) {
@@ -269,68 +273,84 @@ class _MedicamentsState extends State<Medicaments> {
                       itemCount: stockMedicaments.length,
                       itemBuilder: (BuildContext context, int index) {
                         final Medicament medicament = stockMedicaments[index];
-                        return Card(
-                          // ...
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  '${medicament.nom}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.0,
-                                  ),
+                        return GestureDetector(
+                          onTap: () {
+                            // Action à effectuer lorsqu'une pharmacie est sélectionnée
+                            // Vous pouvez naviguer vers une autre page ou exécuter une autre action ici
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailsMedocs(
+                                  id: index,
+                                  nom: medicament.nom,
                                 ),
-                                SizedBox(height: 5.0),
-                                Text(
-                                  'Présentation: ${medicament.presentation}',
-                                  style: TextStyle(
-                                    fontSize: 16.0,
+                              ),
+                            );
+
+                          },
+                          child: Card(
+                            // ...
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    '${medicament.nom}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 5.0),
-                                Text(
-                                  'Dosage: ${medicament.dosage}',
-                                  style: TextStyle(
-                                    fontSize: 16.0,
+                                  SizedBox(height: 5.0),
+                                  Text(
+                                    'Présentation: ${medicament.presentation}',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 5.0),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Text(
-                                      '${medicament.prix} Fcfa',
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16.0,
+                                  SizedBox(height: 5.0),
+                                  Text(
+                                    'Dosage: ${medicament.dosage}',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5.0),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        '${medicament.prix} Fcfa',
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: 100),
-                                    IconButton(
-                                      icon: Icon(
-                                        favoris.isFavorite(medicament) ? Icons.favorite : Icons.favorite_border,
-                                        color: Colors.teal,
+                                      SizedBox(width: 100),
+                                      IconButton(
+                                        icon: Icon(
+                                          favoris.isFavorite(medicament) ? Icons.favorite : Icons.favorite_border,
+                                          color: Colors.teal,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            favoris.toggleFavorite(medicament);
+                                          });
+                                        },
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          favoris.toggleFavorite(medicament);
-                                        });
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.shopping_cart, color: Colors.teal),
-                                      onPressed: () {
-                                        // Action lorsque l'utilisateur appuie sur l'icône du panier
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 5.0),
-                              ],
+                                      IconButton(
+                                        icon: Icon(Icons.shopping_cart, color: Colors.teal),
+                                        onPressed: () {
+                                          // Action lorsque l'utilisateur appuie sur l'icône du panier
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5.0),
+                                ],
+                              ),
                             ),
                           ),
                         );

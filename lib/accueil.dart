@@ -19,7 +19,7 @@ class Accueil extends StatefulWidget {
 }
 
 Future<dynamic> getClasse() async {
-  var url = Uri.http('192.168.1.195:8080', 'users/classethera.php');
+  var url = Uri.http('192.168.1.194:8080', 'users/classethera.php');
   url.toString();
   try {
     var response = await http.post(url, body: {});
@@ -44,7 +44,7 @@ Future<dynamic> getClasse() async {
 }
 
 Future<List<String>> getMedicamentsByClasse(String classe) async {
-  var url = Uri.parse('http://192.168.1.195:8080/users/listeclassethera.php?classe_therapeutique=$classe');
+  var url = Uri.parse('http://192.168.1.194:8080/users/listeclassethera.php?classe_therapeutique=$classe');
   try {
     var response = await http.get(url);
     print('Réponse du serveur: ${response.body}');

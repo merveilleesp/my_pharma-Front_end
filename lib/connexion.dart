@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:my_pharma/resetPasswordScreen.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/inscription.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'API.dart';
 
@@ -48,12 +49,18 @@ class _ConnexionState extends State<Connexion> {
         'email': email.text,
         'mot_de_passe': motDePasse.text,
       });
-      dynamic jsonResponse = jsonDecode(response.body);
-      print(jsonResponse);
-
+      dynamic data = jsonDecode(response.body);
+      print(data);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> user = [];
+      user.add(data["nom_utilisateur"]);
+      user.add(data["prenom_utilisateur"]);
+      user.add(data["email_utilisateur"]);
+      user.add(data["id_utilisateur"].toString());
+      prefs.setStringList("User", user);
       if (response.statusCode == 200) {
         setState(() {
-          message = jsonResponse['message'];
+          message = data['message'];
         });
         Navigator.push(
           context,
@@ -61,7 +68,7 @@ class _ConnexionState extends State<Connexion> {
         );
       } else {
         setState(() {
-          message = jsonResponse['error'];
+          message = data['error'];
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

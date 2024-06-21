@@ -12,6 +12,8 @@ import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:my_pharma/search.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Functions.dart';
 import 'Models/Utilisateur.dart';
 
 import 'API.dart';
@@ -83,36 +85,13 @@ class _AccueilState extends State<Accueil> {
 
   Utilisateur? utilisateur;
 
-  Future<void> authentifierUtilisateur(String email, String motDePasse) async {
-    Uri url = API.getUri('/users/connexion.php');
-    final response = await http.post(
-      url,
-      body: {
-        'email': email,
-        'mot_de_passe': motDePasse,
-      },
-    );
 
-    if (response.statusCode == 200) {
-      // Analyser la réponse JSON
-      final responseData = json.decode(response.body);
-      setState(() {
-        utilisateur = Utilisateur(
-          id: responseData['id_utilisateur'],
-          prenom: responseData['prenom_utilisateur'],
-          nom: responseData['nom_utilisateur'],
-          email: responseData['email_utilisateur'],
-        );
-      });
-    } else {
-      // Gérer les erreurs de connexion ici
-      print('Erreur de connexion : ${response.statusCode}');
-    }
-  }
 
   @override
   void initState() {
     super.initState();
+    loadUser().then((value) => utilisateur = value);
+
     getClasse().then((value) {
       setState(() {
         stockclasse = value;

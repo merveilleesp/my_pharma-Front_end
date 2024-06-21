@@ -9,7 +9,7 @@ class Utilisateur {
 
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
     return Utilisateur(
-      id: json['id'],
+      id: int.parse(json['id']),
       nom: json['nom'],
       prenom: json['prenom'],
       email: json['email'],

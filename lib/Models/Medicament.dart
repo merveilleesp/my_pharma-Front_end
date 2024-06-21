@@ -15,14 +15,50 @@ class Medicament {
     this.isFavorite = false,
   });
 
+
+  // Méthode pour convertir un objet Médicament en format JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'designation': nom,
+      'presentation': presentation,
+      'dosage': dosage,
+      'prix': prix,
+      'isFavorite': isFavorite,
+    };
+  }
+
+
   factory Medicament.fromJson(Map<String, dynamic> json) {
     return Medicament(
-      id: json['id'],
-      nom: json['designation'],
-      prix: double.parse(json['prix']),
-      presentation: json['presentation'], // Assurez-vous que ces clés existent dans votre JSON
-      dosage: json['dosage'],
-      isFavorite: false, // Vous pouvez initialiser à partir de vos données si nécessaire
+      id: json['id'] ?? 0,
+      nom: json['designation'] ?? '',
+      presentation: json['presentation'] ?? '',
+      dosage: json['dosage'] ?? '',
+      prix: json['prix'] != null ? double.parse(json['prix'].toString()) : 0.0,
+      isFavorite: json['isFavorite'] ?? false,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Medicament &&
+        other.id == id &&
+        other.nom == nom &&
+        other.presentation == presentation &&
+        other.dosage == dosage &&
+        other.prix == prix;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+    nom.hashCode ^
+    presentation.hashCode ^
+    dosage.hashCode ^
+    prix.hashCode;
+  }
+
 }

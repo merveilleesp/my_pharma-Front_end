@@ -12,6 +12,9 @@ import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:my_pharma/search.dart';
+import 'Models/Utilisateur.dart';
+
+import 'API.dart';
 
 class Accueil extends StatefulWidget {
   @override
@@ -19,10 +22,10 @@ class Accueil extends StatefulWidget {
 }
 
 Future<dynamic> getClasse() async {
-  var url = Uri.http('192.168.1.194:8080', 'users/classethera.php');
-  url.toString();
+  Uri uri = API.getUri('users/classethera.php');
+  uri.toString();
   try {
-    var response = await http.post(url, body: {});
+    var response = await http.post(uri, body: {});
     print('msg: ${response.statusCode}');
     if (response.statusCode == 200) {
       // Si la réponse est correcte, parsez le contenu de la réponse en JSON
@@ -44,9 +47,12 @@ Future<dynamic> getClasse() async {
 }
 
 Future<List<String>> getMedicamentsByClasse(String classe) async {
-  var url = Uri.parse('http://192.168.1.194:8080/users/listeclassethera.php?classe_therapeutique=$classe');
+   Uri uri = API.getUri('users/listeclassethera.php');
+
   try {
-    var response = await http.get(url);
+    var response = await http.post(uri, body: {
+      "classe_therapeutique": classe,
+    });
     print('Réponse du serveur: ${response.body}');
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
@@ -74,6 +80,35 @@ class _AccueilState extends State<Accueil> {
   dynamic stockclasse;
   bool isOK = false;
   Position? _currentPosition;
+
+  Utilisateur? utilisateur;
+
+  Future<void> authentifierUtilisateur(String email, String motDePasse) async {
+    Uri url = API.getUri('/users/connexion.php');
+    final response = await http.post(
+      url,
+      body: {
+        'email': email,
+        'mot_de_passe': motDePasse,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Analyser la réponse JSON
+      final responseData = json.decode(response.body);
+      setState(() {
+        utilisateur = Utilisateur(
+          id: responseData['id_utilisateur'],
+          prenom: responseData['prenom_utilisateur'],
+          nom: responseData['nom_utilisateur'],
+          email: responseData['email_utilisateur'],
+        );
+      });
+    } else {
+      // Gérer les erreurs de connexion ici
+      print('Erreur de connexion : ${response.statusCode}');
+    }
+  }
 
   @override
   void initState() {
@@ -216,9 +251,13 @@ class _AccueilState extends State<Accueil> {
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: <Widget>[
-                      const UserAccountsDrawerHeader(
-                        accountName: Text('Nom Utilisateur'),
-                        accountEmail: Text('email@example.com'),
+                      UserAccountsDrawerHeader(
+                        accountName: utilisateur != null
+                            ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                            : Text('Aucun utilisateur n\'est connecté'),
+                        accountEmail: utilisateur != null
+                            ? Text('${utilisateur!.email}')
+                            : Text(''),
                         currentAccountPicture: CircleAvatar(
                           child: Icon(Icons.person),
                         ),

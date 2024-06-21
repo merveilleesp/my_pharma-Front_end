@@ -1,15 +1,19 @@
-/*class Utilisateur {
+class Utilisateur {
+  final int id;
   final String nom;
-  final String telephone;
+  final String prenom;
   final String email;
 
-  Utilisateur({required this.nom, required this.telephone, required this.email});
+  Utilisateur(
+      { required this.id, required this.nom,required this.prenom, required this.email});
 
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
     return Utilisateur(
+      id: json['id'],
       nom: json['nom'],
-      telephone: json['telephone'],
+      prenom: json['prenom'],
       email: json['email'],
     );
   }
-}*/
+
+}

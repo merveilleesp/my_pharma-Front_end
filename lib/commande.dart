@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'API.dart';
 import 'Models/Commande.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'package:http/http.dart' as http;
@@ -39,7 +40,7 @@ class CommandePage extends StatelessWidget {
 
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.194:8080/users/commande.php'),
+        Uri.parse(API.url+'/users/commande.php'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(data),
       );

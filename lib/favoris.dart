@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
@@ -6,25 +7,72 @@ import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Models/Medicament.dart';
-import 'favoris.dart';
 
-class FavorisPage extends StatelessWidget {
+class FavorisPage extends StatefulWidget {
   final Favoris favoris;
 
   FavorisPage({required this.favoris});
 
   @override
+  _FavorisPageState createState() => _FavorisPageState();
+}
+
+class _FavorisPageState extends State<FavorisPage> {
+
+  List<Medicament> _favorisList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoris();
+  }
+
+  void _loadFavoris() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? favorisStringList = prefs.getStringList('favoris');
+    print(favorisStringList);
+    if (favorisStringList != null) {
+      setState(() {
+        _favorisList = favorisStringList
+            .map((item) => Medicament.fromJson(json.decode(item)))
+            .toList();
+        print(_favorisList);
+      });
+    }
+  }
+
+  void _addFavori(Medicament medicament) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? favorisStringList = prefs.getStringList('favoris');
+
+    if (favorisStringList == null) {
+      favorisStringList = [];
+    }
+
+    favorisStringList.add(json.encode(medicament.toJson()));
+
+    await prefs.setStringList('favoris', favorisStringList);
+
+    setState(() {
+      _favorisList.add(medicament);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Favoris',
+        title: Text(
+          'Favoris',
           style: TextStyle(
-          color: Colors.white, // Texte en blanc
-        ),),
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.teal,
         iconTheme: const IconThemeData(
-          color: Colors.white, // Icône en blanc
+          color: Colors.white,
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -75,8 +123,8 @@ class FavorisPage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
-                );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  MaterialPageRoute(builder: (context) => FavorisPage(favoris: widget.favoris)),
+                );
               },
             ),
             ListTile(
@@ -124,17 +172,17 @@ class FavorisPage extends StatelessWidget {
           ],
         ),
       ),
-      body: favoris.favorisList.isEmpty
+      body: _favorisList.isEmpty
           ? Center(
-            child: Text(
-              "Aucun médicament n'a été ajouté",
-              style: TextStyle(fontSize: 20.0),
-            ),
-        )
-          :ListView.builder(
-        itemCount: favoris.favorisList.length,
+        child: Text(
+          "Aucun médicament n'a été ajouté",
+          style: TextStyle(fontSize: 20.0),
+        ),
+      )
+          : ListView.builder(
+        itemCount: _favorisList.length,
         itemBuilder: (BuildContext context, int index) {
-          final Medicament medicament = favoris.favorisList[index];
+          final Medicament medicament = _favorisList[index];
           return Card(
             margin: EdgeInsets.all(8.0),
             child: Padding(

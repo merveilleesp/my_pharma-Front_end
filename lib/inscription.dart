@@ -9,6 +9,8 @@ import 'package:my_pharma/connexion.dart';
 import 'package:my_pharma/verification.dart';
 import 'package:http/http.dart' as http;
 
+import 'API.dart';
+
 
 class Inscription extends StatefulWidget {
   const Inscription({super.key});
@@ -75,7 +77,7 @@ class _InscriptionState extends State<Inscription> {
         String confirmationCode = genererCode();
 
         // Insérer les données de l'utilisateur et le code de confirmation dans la base de données
-        Uri url = Uri.parse('http://192.168.1.194:5050/users/mypharma.php');
+        Uri url = API.getUri('/users/mypharma.php');
         http.Response response = await http.post(url, body: {
           'nom': nom.text,
           'prenom': prenom.text,

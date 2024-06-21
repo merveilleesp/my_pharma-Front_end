@@ -8,6 +8,8 @@ import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/code.dart';
 import 'package:my_pharma/connexion.dart';
 
+import 'API.dart';
+
 class Verification extends StatefulWidget {
 
   final String email;
@@ -50,7 +52,7 @@ class _VerificationState extends State<Verification> {
   Future<void> renvoyerCode(String email) async {
     String nouveauCode = genererCode();
     try {
-      Uri url = Uri.parse('http://192.168.1.194:5050/renvoiecode.php');
+      Uri url = Uri.parse(API.url+'/renvoiecode.php');
       http.Response response = await http.post(url, body: {
         'email': email,
         'confirmation_code': nouveauCode,
@@ -73,7 +75,7 @@ class _VerificationState extends State<Verification> {
   }
 
   Future<void> validerInscription() async {
-    Uri url = Uri.parse('http://192.168.1.194:5050/users/verification.php');
+    Uri url = Uri.parse(API.url+'/users/verification.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': widget.email,

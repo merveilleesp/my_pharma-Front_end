@@ -10,6 +10,7 @@ import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
+import 'API.dart';
 import 'Models/CommandeManager.dart';
 import 'commande.dart'; // Importez CommandeManager
 
@@ -22,7 +23,7 @@ class ListeCommandesPage extends StatelessWidget {
       try {
         // Envoi de la requête POST à l'API
         var response = await http.post(
-          Uri.parse('http://192.168.1.194:8080/users/connexion.php'),
+          Uri.parse(API.url+'/users/connexion.php'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"email": email, "mot_de_passe": motDePasse}),
         );

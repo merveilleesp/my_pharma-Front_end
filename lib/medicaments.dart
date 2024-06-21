@@ -11,22 +11,42 @@ import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'API.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'detailspharma.dart';
+import 'listpharm.dart';
 import 'panier.dart';
-
-
 
 class Favoris {
   List<Medicament> favorisList = [];
 
-  void toggleFavorite(Medicament medicament) {
+  Favoris() {
+    loadFavorites(); // Charge les favoris au démarrage de la classe
+  }
+
+  Future<void> loadFavorites() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var favorisStringList = prefs.getStringList('favoris');
+    if (favorisStringList != null) {
+      favorisList = favorisStringList
+          .map((item) => Medicament.fromJson(json.decode(item)))
+          .toList();
+    }
+  }
+
+  void toggleFavorite(Medicament medicament) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     if (favorisList.contains(medicament)) {
       favorisList.remove(medicament);
     } else {
       favorisList.add(medicament);
     }
+    List<String> favorisStringList = favorisList
+        .map((item) => json.encode(item.toJson()))
+        .toList();
+    prefs.setStringList('favoris', favorisStringList);
   }
 
   bool isFavorite(Medicament medicament) {
@@ -34,34 +54,11 @@ class Favoris {
   }
 }
 
-
-
 class Medicaments extends StatefulWidget {
   @override
   _MedicamentsState createState() => _MedicamentsState();
 }
 
-Future<List<Medicament>> getMedicaments() async {
-  var url = Uri.http('192.168.1.194:8080', 'users/recupdonneesme.php');
-  try {
-    var response = await http.post(url, body: {});
-    print('msg: ${response.statusCode}');
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<Medicament> medicaments = List<Medicament>.from(data.map((item) => Medicament.fromJson(item)));
-      return medicaments;
-    } else {
-      print(response.statusCode);
-      Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
-      return [];
-    }
-  } catch (e) {
-    Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
-    Fluttertoast.showToast(msg: "Vérifiez votre connexion");
-    print(e);
-    return [];
-  }
-}
 
 class _MedicamentsState extends State<Medicaments> {
   bool isFavorite = false;
@@ -71,8 +68,39 @@ class _MedicamentsState extends State<Medicaments> {
   dynamic dataMedicaments;
   bool medocIsReady = false;
   List<MedicamentCartItem> panier = [];
-  Favoris favoris = Favoris();// Ajout du panier
+  Favoris favoris = Favoris(); // Ajout du panier
 
+
+  Future<List<Medicament>> getMedicaments() async {
+    var url = Uri.http(API.url, 'users/recupdonneesme.php');
+    try {
+      var response = await http.post(url, body: {});
+      print('Code de réponse : ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('Réponse JSON de l\'API : $data');
+
+        // Vérifiez ici si 'data' contient bien les données des médicaments
+        if (data != null) {
+          List<Medicament> medicaments = List<Medicament>.from(data.map((item) => Medicament.fromJson(item)));
+          return medicaments;
+        } else {
+          // Gérer le cas où 'data' est null ou vide
+          Fluttertoast.showToast(msg: "Aucune donnée de médicament trouvée");
+          return [];
+        }
+      } else {
+        print('Code de réponse non 200 : ${response.statusCode}');
+        Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+        return [];
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Échec de connexion au serveur de DB");
+      Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+      print('Erreur : $e');
+      return [];
+    }
+  }
 
   void loadMedoc() {
     getMedicaments().then((value) {
@@ -103,28 +131,11 @@ class _MedicamentsState extends State<Medicaments> {
     });
   }
 
-
-
-  List<Medicament> genererDonneesMedicaments() {
-    return List.generate(350, (index) {
-      // Générez un prix aléatoire pour chaque médicament
-      final double prix = (index + 1) * 2.5; // Par exemple, un prix simple
-      return Medicament(
-        id: index + 1,
-        nom: 'designation ${index + 1}',
-        prix: prix,
-        presentation: 'Présentation du médicament ${index + 1}',
-        dosage: 'Dosage du médicament ${index + 1}',
-      );
-    });
-  }
-
   @override
   void initState() {
     loadMedoc();
+    favoris.loadFavorites(); // Charge les favoris au démarrage de l'écran
     super.initState();
-    medicaments = genererDonneesMedicaments();
-    medicamentsInitials = List.from(medicaments);
   }
 
   @override
@@ -286,7 +297,6 @@ class _MedicamentsState extends State<Medicaments> {
                                 ),
                               ),
                             );
-
                           },
                           child: Card(
                             // ...
@@ -343,7 +353,15 @@ class _MedicamentsState extends State<Medicaments> {
                                       IconButton(
                                         icon: Icon(Icons.shopping_cart, color: Colors.teal),
                                         onPressed: () {
-                                          // Action lorsque l'utilisateur appuie sur l'icône du panier
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PharmaciesWithMedicine(
+                                                medicamentId: medicament.id,
+                                                medicamentName: medicament.nom,
+                                              ),
+                                            ),
+                                          );
                                         },
                                       ),
                                     ],
@@ -357,7 +375,7 @@ class _MedicamentsState extends State<Medicaments> {
                       },
                     )
                         : Center(
-                            child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(),
                     ),
                   ),
                 ],

@@ -12,7 +12,9 @@ import 'package:my_pharma/detailspharma.dart';
 import 'package:my_pharma/favoris.dart';
 import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
-import 'package:my_pharma/profil.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
+import 'package:my_pharma/profil.dart';
+
+import 'API.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
 
 class Pharmacie {
   final String nom;
@@ -73,7 +75,7 @@ class Pharmacies extends StatefulWidget {
 }
 
 Future<dynamic> getPharmacies() async {
-  var url = Uri.http('192.168.1.194:8080', 'users/recupdonnees.php');
+  var url = Uri.http(API.url, 'users/recupdonnees.php');
   try {
     var response = await http.post(url, body: {});
     print('msg: ${response.statusCode}');
@@ -474,7 +476,8 @@ class _PharmaciesState extends State<Pharmacies> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
+                child: stockPharmacies != null
+                    ? ListView.builder(
                 itemCount: pharmaciesAffichees.length,
                 itemBuilder: (context, index) {
                   final pharmacie = pharmaciesAffichees[index];
@@ -511,7 +514,10 @@ class _PharmaciesState extends State<Pharmacies> {
                     ),
                   );
                 },
-              ),
+              )
+                    : Center(
+                child: CircularProgressIndicator(),
+    ),
             ),
           ],
         ),

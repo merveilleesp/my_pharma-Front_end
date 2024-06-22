@@ -8,7 +8,9 @@ import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Functions.dart';
 import 'Models/Medicament.dart';
+import 'Models/Utilisateur.dart';
 
 class FavorisPage extends StatefulWidget {
   final Favoris favoris;
@@ -23,10 +25,13 @@ class _FavorisPageState extends State<FavorisPage> {
 
   List<Medicament> _favorisList = [];
 
+  Utilisateur? utilisateur;
+
   @override
   void initState() {
     super.initState();
     _loadFavoris();
+    loadUser().then((value) => utilisateur = value);
   }
 
   void _loadFavoris() async {
@@ -86,9 +91,13 @@ class _FavorisPageState extends State<FavorisPage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const UserAccountsDrawerHeader(
-              accountName: Text('Nom Utilisateur'),
-              accountEmail: Text('email@example.com'),
+            UserAccountsDrawerHeader(
+              accountName: utilisateur != null
+                  ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                  : Text('Aucun utilisateur n\'est connecté'),
+              accountEmail: utilisateur != null
+                  ? Text('${utilisateur!.email}')
+                  : Text(''),
               currentAccountPicture: CircleAvatar(
                 child: Icon(Icons.person),
               ),

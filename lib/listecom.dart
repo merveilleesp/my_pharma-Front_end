@@ -1,8 +1,7 @@
-
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:my_pharma/Models/Utilisateur.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/connexion.dart';
@@ -11,54 +10,79 @@ import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'API.dart';
+import 'Functions.dart';
 import 'Models/CommandeManager.dart';
 import 'commande.dart'; // Importez CommandeManager
 
-class ListeCommandesPage extends StatelessWidget {
+class ListeCommandesPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    final commandes = CommandeManager().commandes; // Récupérer les commandes via le singleton
+  _ListeCommandesPageState createState() => _ListeCommandesPageState();
+}
 
-    Future<int> getIdUtilisateurFromSource(String email, String motDePasse) async {
-      try {
-        // Envoi de la requête POST à l'API
-        var response = await http.post(
-          Uri.parse(API.url+'/users/connexion.php'),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"email": email, "mot_de_passe": motDePasse}),
-        );
+class _ListeCommandesPageState extends State<ListeCommandesPage> {
+  Utilisateur? utilisateur;
+  bool isLoading = true;
 
-        // Vérification de la réponse
-        if (response.statusCode == 200) {
-          // Analyse de la réponse JSON pour obtenir l'ID utilisateur
-          Map<String, dynamic> data = jsonDecode(response.body);
-          int idUtilisateur = data['id_utilisateur'];
-          print('ID utilisateur récupéré avec succès: $idUtilisateur');
-          return idUtilisateur;
-        } else {
-          // Gestion des erreurs de réponse
-          print('Erreur lors de la récupération de l\'ID utilisateur: ${response.statusCode}');
-          return -1; // Retourner une valeur par défaut ou gérer l'erreur selon les besoins
-        }
-      } catch (e) {
-        // Gestion des erreurs d'exception
-        print('Exception lors de la récupération de l\'ID utilisateur: $e');
+  final commandes = CommandeManager().commandes; // Récupérer les commandes via le singleton
+
+  Future<int> getIdUtilisateurFromSource(String email, String motDePasse) async {
+    try {
+      // Envoi de la requête POST à l'API
+      var response = await http.post(
+        Uri.parse(API.url + '/users/connexion.php'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email, "mot_de_passe": motDePasse}),
+      );
+
+      // Vérification de la réponse
+      if (response.statusCode == 200) {
+        // Analyse de la réponse JSON pour obtenir l'ID utilisateur
+        Map<String, dynamic> data = jsonDecode(response.body);
+        int idUtilisateur = data['id_utilisateur'];
+        print('ID utilisateur récupéré avec succès: $idUtilisateur');
+        return idUtilisateur;
+      } else {
+        // Gestion des erreurs de réponse
+        print('Erreur lors de la récupération de l\'ID utilisateur: ${response.statusCode}');
         return -1; // Retourner une valeur par défaut ou gérer l'erreur selon les besoins
       }
+    } catch (e) {
+      // Gestion des erreurs d'exception
+      print('Exception lors de la récupération de l\'ID utilisateur: $e');
+      return -1; // Retourner une valeur par défaut ou gérer l'erreur selon les besoins
     }
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    loadUser().then((value) {
+      setState(() {
+        utilisateur = value;
+        isLoading = false;
+      });
+    });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Liste des Commandes'),
       ),
       drawer: Drawer(
-        child: ListView(
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const UserAccountsDrawerHeader(
-              accountName: Text('Nom Utilisateur'),
-              accountEmail: Text('email@example.com'),
+            UserAccountsDrawerHeader(
+              accountName: utilisateur != null
+                  ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                  : Text('Aucun utilisateur n\'est connecté'),
+              accountEmail: utilisateur != null
+                  ? Text('${utilisateur!.email}')
+                  : Text(''),
               currentAccountPicture: CircleAvatar(
                 child: Icon(Icons.person),
               ),
@@ -94,8 +118,12 @@ class ListeCommandesPage extends StatelessWidget {
                 Favoris favoris = Favoris();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavorisPage(favoris: favoris,)),
-                );// Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
+                  MaterialPageRoute(
+                    builder: (context) => FavorisPage(
+                      favoris: favoris,
+                    ),
+                  ),
+                ); // Action à effectuer lorsque l'option Se Déconnecter est sélectionnée
               },
             ),
             ListTile(
@@ -151,15 +179,14 @@ class ListeCommandesPage extends StatelessWidget {
         itemCount: commandes.length,
         itemBuilder: (context, index) {
           final commande = commandes[index];
-          return Card (
+          return Card(
             child: ListTile(
               title: Text('Commande #${commande.numero}'),
               onTap: () async {
-
                 String email = 'email_utilisateur';
                 String motDePasse = 'mot_de_passe_utilisateur';
 
-                int? idUtilisateur = await getIdUtilisateurFromSource(email , motDePasse);
+                int? idUtilisateur = await getIdUtilisateurFromSource(email, motDePasse);
                 // Naviguer vers les détails de la commande si nécessaire
                 if (idUtilisateur != null) {
                   // Naviguer vers les détails de la commande si nécessaire

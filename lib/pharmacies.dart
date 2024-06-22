@@ -14,7 +14,9 @@ import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/profil.dart';
 
-import 'API.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
+import 'API.dart';
+import 'Functions.dart';
+import 'Models/Utilisateur.dart'; // Importation de la bibliothèque mathématique pour générer une distance aléatoire
 
 class Pharmacie {
   final String nom;
@@ -107,6 +109,7 @@ class _PharmaciesState extends State<Pharmacies> {
   dynamic dataPharmacies;
   Position? _currentPosition;
   Favoris favoris = Favoris();
+  Utilisateur? utilisateur;
 
   toggleButton() {
     setState(() {
@@ -211,6 +214,7 @@ class _PharmaciesState extends State<Pharmacies> {
   @override
   void initState() {
     super.initState();
+    loadUser().then((value) => utilisateur = value);
     _checkLocationPermission().then((_) {
       getPharmacies().then((value) {
         if (value != null) {
@@ -299,9 +303,13 @@ class _PharmaciesState extends State<Pharmacies> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              const UserAccountsDrawerHeader(
-                accountName: Text('Nom Utilisateur'),
-                accountEmail: Text('email@example.com'),
+              UserAccountsDrawerHeader(
+                accountName: utilisateur != null
+                    ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                    : Text('Aucun utilisateur n\'est connecté'),
+                accountEmail: utilisateur != null
+                    ? Text('${utilisateur!.email}')
+                    : Text(''),
                 currentAccountPicture: CircleAvatar(
                   child: Icon(Icons.person),
                 ),

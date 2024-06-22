@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_pharma/Models/Utilisateur.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/detailsmedocs.dart';
@@ -13,6 +14,7 @@ import 'package:my_pharma/pharmacies.dart';
 import 'package:my_pharma/profil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'API.dart';
+import 'Functions.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'detailspharma.dart';
@@ -69,6 +71,7 @@ class _MedicamentsState extends State<Medicaments> {
   bool medocIsReady = false;
   List<MedicamentCartItem> panier = [];
   Favoris favoris = Favoris(); // Ajout du panier
+  Utilisateur? utilisateur;
 
 
   Future<List<Medicament>> getMedicaments() async {
@@ -136,6 +139,7 @@ class _MedicamentsState extends State<Medicaments> {
     loadMedoc();
     favoris.loadFavorites(); // Charge les favoris au démarrage de l'écran
     super.initState();
+    loadUser().then((value) => utilisateur = value);
   }
 
   @override
@@ -166,9 +170,13 @@ class _MedicamentsState extends State<Medicaments> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              const UserAccountsDrawerHeader(
-                accountName: Text('Nom Utilisateur'),
-                accountEmail: Text('email@example.com'),
+              UserAccountsDrawerHeader(
+                accountName: utilisateur != null
+                    ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                    : Text('Aucun utilisateur n\'est connecté'),
+                accountEmail: utilisateur != null
+                    ? Text('${utilisateur!.email}')
+                    : Text(''),
                 currentAccountPicture: CircleAvatar(
                   child: Icon(Icons.person),
                 ),

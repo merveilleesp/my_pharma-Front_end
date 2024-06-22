@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_pharma/Models/Utilisateur.dart';
 import 'package:my_pharma/accueil.dart';
 import 'package:my_pharma/assurance.dart';
 import 'package:my_pharma/kkiapays.dart';
@@ -9,7 +10,30 @@ import 'package:my_pharma/listecom.dart';
 import 'package:my_pharma/medicaments.dart';
 import 'package:my_pharma/pharmacies.dart';
 
-class Profil extends StatelessWidget {
+import 'Functions.dart';
+
+class Profil extends StatefulWidget {
+  @override
+  _ProfilState createState() => _ProfilState();
+}
+
+class _ProfilState extends State <Profil> {
+
+  Utilisateur? utilisateur;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUser().then((value) {
+      setState(() {
+        utilisateur = value;
+        isLoading = false;
+      });
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,9 +62,13 @@ class Profil extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              const UserAccountsDrawerHeader(
-                accountName: Text('Nom Utilisateur'),
-                accountEmail: Text('email@example.com'),
+              UserAccountsDrawerHeader(
+                accountName: utilisateur != null
+                    ? Text('${utilisateur!.prenom} ${utilisateur!.nom}')
+                    : Text('Aucun utilisateur n\'est connecté'),
+                accountEmail: utilisateur != null
+                    ? Text('${utilisateur!.email}')
+                    : Text(''),
                 currentAccountPicture: CircleAvatar(
                   child: Icon(Icons.person),
                 ),

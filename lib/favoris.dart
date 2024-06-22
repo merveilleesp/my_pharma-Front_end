@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Functions.dart';
 import 'Models/Medicament.dart';
 import 'Models/Utilisateur.dart';
+import 'listpharm.dart';
 
 class FavorisPage extends StatefulWidget {
   final Favoris favoris;
@@ -63,6 +64,21 @@ class _FavorisPageState extends State<FavorisPage> {
     setState(() {
       _favorisList.add(medicament);
     });
+  }
+
+  void _removeFavori(Medicament medicament) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? favorisStringList = prefs.getStringList('favoris');
+
+    if (favorisStringList != null) {
+      favorisStringList.remove(json.encode(medicament.toJson()));
+
+      await prefs.setStringList('favoris', favorisStringList);
+
+      setState(() {
+        _favorisList.remove(medicament);
+      });
+    }
   }
 
   @override
@@ -234,9 +250,26 @@ class _FavorisPageState extends State<FavorisPage> {
                       ),
                       SizedBox(width: 100),
                       IconButton(
+                        icon: Icon(Icons.delete, color: Colors.teal),
+                        onPressed: () {
+                          setState(() {
+                            _removeFavori(medicament);
+                          });
+                        },
+                      ),
+                      IconButton(
                         icon: Icon(Icons.shopping_cart, color: Colors.teal),
                         onPressed: () {
                           // Action lorsque l'utilisateur appuie sur l'icône du panier
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PharmaciesWithMedicine(
+                                medicamentId: medicament.id,
+                                medicamentName: medicament.nom,
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ],

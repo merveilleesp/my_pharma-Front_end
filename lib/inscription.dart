@@ -77,8 +77,8 @@ class _InscriptionState extends State<Inscription> {
         String confirmationCode = genererCode();
 
         // Insérer les données de l'utilisateur et le code de confirmation dans la base de données
-        Uri url = API.getUri('/users/mypharma.php');
-        http.Response response = await http.post(url, body: {
+        Uri uri = API.getUri('/users/mypharma.php');
+        http.Response response = await http.post(uri, body: {
           'nom': nom.text,
           'prenom': prenom.text,
           'email': email.text,

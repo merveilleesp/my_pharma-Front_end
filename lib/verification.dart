@@ -52,7 +52,7 @@ class _VerificationState extends State<Verification> {
   Future<void> renvoyerCode(String email) async {
     String nouveauCode = genererCode();
     try {
-      Uri url = Uri.parse(API.url+'/renvoiecode.php');
+      Uri url = Uri.parse('http://${API.url}/renvoiecode.php');
       http.Response response = await http.post(url, body: {
         'email': email,
         'confirmation_code': nouveauCode,
@@ -66,16 +66,18 @@ class _VerificationState extends State<Verification> {
         await sendMailInvitation(email, nouveauCode);
         print('E-mail envoyé avec succès');
       } else {
-        dynamic jsonResponse = jsonDecode(response.body);
-        print('Erreur lors de la mise à jour du code : ${jsonResponse['error']}');
+        // Gérer les erreurs HTTP ici
+        print('Erreur lors de la mise à jour du code - StatusCode: ${response.statusCode}');
+        print(response.body);
       }
     } catch (e) {
+      // Gérer les erreurs de connexion ou autres exceptions
       print('Erreur lors de la mise à jour du code : $e');
     }
   }
 
   Future<void> validerInscription() async {
-    Uri url = Uri.parse(API.url+'/users/verification.php');
+    Uri url = API.getUri('/users/verification.php');
     try {
       http.Response response = await http.post(url, body: {
         'email': widget.email,

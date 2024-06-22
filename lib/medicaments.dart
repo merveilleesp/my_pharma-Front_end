@@ -296,7 +296,7 @@ class _MedicamentsState extends State<Medicaments> {
                           onTap: () {
                             // Action à effectuer lorsqu'une pharmacie est sélectionnée
                             // Vous pouvez naviguer vers une autre page ou exécuter une autre action ici
-                            Navigator.push(
+                            /*Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => DetailsMedocs(
@@ -304,7 +304,7 @@ class _MedicamentsState extends State<Medicaments> {
                                   nom: medicament.nom,
                                 ),
                               ),
-                            );
+                            );*/
                           },
                           child: Card(
                             // ...

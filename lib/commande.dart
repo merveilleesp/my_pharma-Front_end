@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'API.dart';
+import 'CommandeEnregistreePage .dart';
 import 'Models/Commande.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'package:http/http.dart' as http;
@@ -142,6 +143,12 @@ class CommandePage extends StatelessWidget {
               alignment: Alignment.center,
               child: ElevatedButton(
                 onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CommandeEnregistreePage(),
+                    ),
+                  );
                   validerCommande(idUtilisateur);
                 },
                 style: ElevatedButton.styleFrom(

@@ -5,11 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:my_pharma/detailspharma.dart';
 import 'package:my_pharma/panier.dart';
 
-
 import 'API.dart';
 import 'Models/Medicament.dart';
 import 'Models/MedicamentCartItem.dart';
 import 'Models/PharmacieCard.dart';
+import 'listpharm.dart';
 
 class SearchPage extends StatefulWidget {
   final String nom_medoc;
@@ -21,42 +21,58 @@ class SearchPage extends StatefulWidget {
   _SearchPageState createState() => _SearchPageState();
 }
 
-Future<dynamic> getPharm(query) async {
-  var url = Uri.http(API.url, 'users/dispomedinpharm.php');
-  url.toString();
-  try {
-    var response = await http.post(url, body: {'query': query});
-    print('msg: ${response.statusCode}');
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      print(data);
-      return data;
-    } else {
-      print(response.statusCode);
-      Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
-      return null;
-    }
-  } catch (e) {
-    Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
-    Fluttertoast.showToast(msg: "Vérifiez votre connexion");
-    print(e);
-    return null;
-  }
-}
-
 class _SearchPageState extends State<SearchPage> {
   List<PharmacieCard> panier = [];
-  dynamic stockSearch;
+  List<dynamic> stockSearch = [];
   String title = '';
+  List<Pharmacie> pharmacie = [];
+  bool isLoading = true; // To track loading state
+
+  Future<void> getPharm(String query) async {
+    var url = Uri.http(API.url, 'users/dispomedinpharm.php');
+    try {
+      var response = await http.post(url, body: {'query': query});
+      print('msg: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        print('Data fetched: $data'); // Debug statement to check fetched data
+        setState(() {
+          stockSearch = data;
+          pharmacie = data.map((json) => Pharmacie.fromJson(json)).toList();
+          isLoading = false; // Set loading to false when data is fetched
+        });
+      } else {
+        print('Error: ${response.statusCode}');
+        Fluttertoast.showToast(msg: "Un problème s'est posé, merci de réessayer");
+        setState(() {
+          isLoading = false; // Set loading to false on error
+        });
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Échec de connexion vers le serveur de DB");
+      Fluttertoast.showToast(msg: "Vérifiez votre connexion");
+      print('Exception: $e');
+      setState(() {
+        isLoading = false; // Set loading to false on exception
+      });
+    }
+  }
 
   void addToCart(BuildContext context, Medicament medicament, String pharmacie) {
     final existingCartItem = panier.firstWhere(
           (item) => item.pharmacieName == pharmacie,
-      orElse: () => PharmacieCard(pharmacieName: "", medicamentCard: MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''))),
+      orElse: () => PharmacieCard(
+        pharmacieName: "",
+        medicamentCard: MedicamentCartItem(
+          medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''),
+        ),
+      ),
     );
     final existingMedicamentCard = existingCartItem.medicaments.firstWhere(
-            (item) => item.medicament.nom == medicament.nom,
-        orElse: () => MedicamentCartItem(medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''))
+          (item) => item.medicament.nom == medicament.nom,
+      orElse: () => MedicamentCartItem(
+        medicament: Medicament(nom: "", prix: 0, id: 0, presentation: '', dosage: ''),
+      ),
     );
     if (existingCartItem.pharmacieName.isNotEmpty) {
       if (existingMedicamentCard.medicament.nom.isNotEmpty) {
@@ -77,7 +93,10 @@ class _SearchPageState extends State<SearchPage> {
       }
     } else {
       setState(() {
-        PharmacieCard tmp = PharmacieCard(pharmacieName: pharmacie, medicamentCard: MedicamentCartItem(medicament: medicament));
+        PharmacieCard tmp = PharmacieCard(
+          pharmacieName: pharmacie,
+          medicamentCard: MedicamentCartItem(medicament: medicament),
+        );
         panier.add(tmp);
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,11 +119,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     title = widget.nom_medoc;
-    getPharm(widget.nom_medoc).then((value) {
-      setState(() {
-        stockSearch = value;
-      });
-    });
+    getPharm(widget.nom_medoc);
     super.initState();
   }
 
@@ -114,13 +129,11 @@ class _SearchPageState extends State<SearchPage> {
     if (_controller.text.isNotEmpty) {
       setState(() {
         title = _controller.text;
-        stockSearch = null;
+        isLoading = true; // Set loading to true when a new search is initiated
+        stockSearch = [];
+        pharmacie = []; // Clear previous results
       });
-      getPharm(_controller.text).then((value) {
-        setState(() {
-          stockSearch = value;
-        });
-      });
+      getPharm(_controller.text);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Le champ de recherche est vide')),
@@ -157,12 +170,14 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Expanded(
-              child: stockSearch == null
-                  ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : (pharmacie.isEmpty
+                  ? Center(child: Text("Aucune pharmacie trouvée"))
                   : ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                itemCount: stockSearch.length,
-                itemBuilder: (BuildContext context, int index) {
+                itemCount: pharmacie.length,
+                itemBuilder: (context, index) {
+                  final pharmacy = pharmacie[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10.0),
                     decoration: BoxDecoration(
@@ -178,18 +193,6 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailsPharmacies(
-                              id: stockSearch[index]["id_pharmacie"] ?? 0,
-                              nom: stockSearch[index]["nom"] ?? '',
-                              latitude: stockSearch[index]["latitude"] ?? '',
-                              longitude: stockSearch[index]["longitude"] ?? '',
-                              contacts: stockSearch[index]["contacts"] ?? '',
-                            ),
-                          ),
-                        );
                         print('Pharmacie ${index + 1} sélectionnée');
                       },
                       style: ElevatedButton.styleFrom(
@@ -210,14 +213,14 @@ class _SearchPageState extends State<SearchPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  stockSearch[index]["pharmacie"] ?? '',
+                                  pharmacy.nom,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.teal,
                                   ),
                                 ),
                                 Text(
-                                  'Distance: ',
+                                  'Distance: ${pharmacy.distance}',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     color: Colors.black,
@@ -228,18 +231,18 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           const SizedBox(width: 10),
                           IconButton(
-                            icon: Icon(Icons.shopping_cart, color: Colors.teal,),
+                            icon: Icon(Icons.shopping_cart, color: Colors.teal),
                             onPressed: () {
                               addToCart(
-                                  context,
-                                  Medicament(
-                                    id: stockSearch[index]["id"] ?? 0,
-                                    nom: stockSearch[index]["medicament"] ?? '',
-                                    presentation: stockSearch[index]["presentation"] ?? '',
-                                    dosage: stockSearch[index]["dosage"] ?? '',
-                                    prix: double.parse(stockSearch[index]['prix']?.toString() ?? '0'),
-                                  ),
-                                  stockSearch[index]["pharmacie"] ?? ''
+                                context,
+                                Medicament(
+                                  id: stockSearch[index]["id"] ?? 0,
+                                  nom: stockSearch[index]["medicament"] ?? '',
+                                  presentation: stockSearch[index]["presentation"] ?? '',
+                                  dosage: stockSearch[index]["dosage"] ?? '',
+                                  prix: double.parse(stockSearch[index]['prix']?.toString() ?? '0'),
+                                ),
+                                pharmacy.nom,
                               );
                             },
                           ),
@@ -248,7 +251,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                   );
                 },
-              ),
+              )),
             ),
           ],
         ),

@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:geolocator_platform_interface/src/models/position.dart';
+
 class Pharmacy {
   final String pharmacie;
   final String medicament;
@@ -17,5 +21,21 @@ class Pharmacy {
       longitude: double.parse(json['longitude']),
       latitude: double.parse(json['latitude']),
     );
+  }
+
+  double calculateDistanceInKm(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
+    const int earthRadius = 6371;
+    double latDistance = degreesToRadians(endLatitude - startLatitude);
+    double lonDistance = degreesToRadians(endLongitude - startLongitude);
+    double a = sin(latDistance / 2) * sin(latDistance / 2) +
+        cos(degreesToRadians(startLatitude)) * cos(degreesToRadians(endLatitude)) *
+            sin(lonDistance / 2) * sin(lonDistance / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distance = earthRadius * c;
+    return distance;
+  }
+
+  double degreesToRadians(double degrees) {
+    return degrees * pi / 180;
   }
 }

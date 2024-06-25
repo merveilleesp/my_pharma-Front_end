@@ -51,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     } else {
       // Si l'utilisateur n'est pas connecté, redirigez-le vers la page de connexion après un délai
-      Future.delayed(const Duration(seconds: 5), () {
+      Future.delayed(const Duration(seconds: 6), () {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Onboarding()),
@@ -74,16 +74,16 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Text(
-                  "hello",
-                  style: Theme.of(context).textTheme.headlineMedium,
+                Image.asset(
+                  'assets/mervo-logo_BLANC.png', // Remplacez par le chemin de votre image
+                  width: 300, // Définir la largeur de l'image
+                  height: 500, // Définir la hauteur de l'image
                 ),
               ],
             ),
           ),
         ],
       ),
-
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
